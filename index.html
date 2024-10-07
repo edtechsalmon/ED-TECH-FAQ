@@ -1,1 +1,287 @@
-<h1>Hello!</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ Search</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #search-box { width: 100%; padding: 10px; margin-bottom: 20px; }
+
+#reset-filters {
+  padding: 10px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+    /* Card Styling */
+    .faq-card {
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .faq-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .faq-problem {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .faq-solution {
+      font-size: 16px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* Styling for filter dropdowns */
+    select {
+      padding: 10px;
+      margin-right: 10px;
+    }
+
+    #category-filter {
+      background-color: blue;
+      color: white;
+    }
+
+    #tool-filter {
+      background-color: grey;
+      color: white;
+    }
+
+    #tool-filter.active {
+      background-color: blue;
+    }
+
+    .filter-container {
+      margin-bottom: 20px;
+    }
+
+    /* Video and Link Styling */
+    .faq-video {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .see-more {
+      margin-top: 10px;
+      font-weight: bold;
+      display: block;
+      color: #007bff;
+    }
+  </style>
+
+  <!-- Include Fuse.js for fuzzy searching -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
+</head>
+<body>
+  <h1>FAQ Search</h1>
+
+  <input type="text" id="search-box" placeholder="Search FAQs by keyword or tag">
+
+<!-- Inside your filter-container div -->
+<div class="filter-container">
+  <select id="category-filter">
+    <option value="">Select Category</option>
+  </select>
+  <select id="tool-filter" disabled>
+    <option value="">Select Tool</option>
+  </select>
+  <button id="reset-filters">Reset Filters</button>
+</div>
+
+
+  <div id="faq-list"></div>
+
+  <script type="text/javascript">
+    let allFAQs = []; // Global variable to store all FAQs
+    let fuse;  // Variable to store Fuse.js instance
+
+    function loadGoogleSheetsAPI() {
+      var script = document.createElement('script');
+      script.src = 'https://www.gstatic.com/charts/loader.js';
+      script.onload = initGoogleSheets;
+      document.head.appendChild(script);
+    }
+
+    function initGoogleSheets() {
+      google.charts.load('current', { packages: ['corechart'] });
+      google.charts.setOnLoadCallback(fetchFAQData);
+    }
+
+    function fetchFAQData() {
+      const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=0&single=true&output=csv';
+      
+      fetch(spreadsheetURL)
+        .then(response => response.text())
+        .then(csvText => {
+          const rows = csvText.split('\n').map(row => row.split(','));
+          const faqData = rows.slice(1);  // Skip the header row
+
+          allFAQs = faqData.map(row => ({
+            category: row[0],
+            tool: row[1],
+            problem: row[2],
+            solution: row[3],
+            video: row[4] ? row[4].trim() : null, // Video URL check
+            link: row[5] ? row[5].trim() : null   // Link URL check
+          }));
+
+          displayFAQs(allFAQs);  // Display all FAQs on load
+          setupFuse();  // Initialize Fuse.js with the FAQ data
+          populateFilters();  // Populate dropdown filters
+        })
+        .catch(error => console.error('Error fetching the sheet:', error));
+    }
+
+function createCard(faq) {
+  return `
+    <div class="faq-card">
+      <div class="faq-problem">${faq.problem}</div>
+      <div class="faq-solution">${faq.solution}</div>
+       ${faq.link && faq.link.trim() !== '' ? `<a class="read-more" href="${faq.link}" target="_blank">Read More</a>` : ''}
+      ${faq.video && faq.video.trim() !== '' ? `<div class="faq-video"><iframe width="100%" height="200" src="${faq.video}" frameborder="0" allowfullscreen></iframe></div>` : ''}
+  
+
+    </div>
+  `;
+}
+
+
+
+    function displayFAQs(faqs) {
+      const faqList = document.getElementById('faq-list');
+      if (faqs.length === 0) {
+        faqList.innerHTML = '<p>Please reach out to your schools LTI/TSS team or submit a service desk ticket.</p>';
+      } else {
+        faqList.innerHTML = faqs.map(createCard).join('');
+      }
+    }
+
+    function setupFuse() {
+      const fuseOptions = {
+        keys: ['problem', 'solution', 'tags'],
+        threshold: 0.4,
+        includeScore: true
+      };
+
+      fuse = new Fuse(allFAQs, fuseOptions);
+    }
+
+    function filterFAQs(query = '', selectedTool = '', selectedCategory = '') {
+      let results = allFAQs;
+
+      if (query) {
+        results = fuse.search(query).map(result => result.item);
+      }
+
+      if (selectedTool) {
+        results = results.filter(faq => faq.tool === selectedTool);
+      }
+      if (selectedCategory) {
+        results = results.filter(faq => faq.category === selectedCategory);
+      }
+
+      displayFAQs(results);
+    }
+
+    function populateFilters() {
+      const toolFilter = document.getElementById('tool-filter');
+      const categoryFilter = document.getElementById('category-filter');
+
+      const uniqueCategories = [...new Set(allFAQs.map(faq => faq.category))];
+
+      uniqueCategories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+      });
+    }
+
+    // Populate tool filter based on selected category
+    function populateTools(selectedCategory) {
+      const toolFilter = document.getElementById('tool-filter');
+      toolFilter.innerHTML = '<option value="">Select Tool</option>';  // Clear existing options
+      toolFilter.disabled = !selectedCategory;  // Enable/disable tool filter based on category selection
+
+      if (selectedCategory) {
+        toolFilter.classList.add('active');  // Add active class to change background color
+      } else {
+        toolFilter.classList.remove('active');  // Remove active class when no category is selected
+      }
+
+      const filteredTools = [...new Set(allFAQs
+        .filter(faq => faq.category === selectedCategory)
+        .map(faq => faq.tool))];  // Get unique tools for the selected category
+
+      filteredTools.forEach(tool => {
+        const option = document.createElement('option');
+        option.value = tool;
+        option.textContent = tool;
+        toolFilter.appendChild(option);
+      });
+    }
+// Event listener for the Reset Filters button
+document.getElementById('reset-filters').addEventListener('click', () => {
+  // Clear the search box
+  document.getElementById('search-box').value = '';
+  
+  // Reset the category filter
+  document.getElementById('category-filter').value = '';
+  
+  // Reset and disable the tool filter
+  const toolFilter = document.getElementById('tool-filter');
+  toolFilter.value = '';
+  toolFilter.disabled = true;
+  toolFilter.classList.remove('active'); // Remove active class if any
+  
+  // Re-populate the tool filter options (optional)
+  toolFilter.innerHTML = '<option value="">Select Tool</option>';
+  
+  // Display all FAQs
+  displayFAQs(allFAQs);
+});
+
+
+
+    document.getElementById('search-box').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();  // Get the search query
+      const selectedTool = document.getElementById('tool-filter').value;  // Get selected tool
+      const selectedCategory = document.getElementById('category-filter').value;  // Get selected category
+      filterFAQs(query, selectedTool, selectedCategory);  // Perform filtering
+    });
+
+    document.getElementById('category-filter').addEventListener('change', (e) => {
+      const selectedCategory = e.target.value;  // Get selected category
+      populateTools(selectedCategory);  // Populate tools based on selected category
+      const query = document.getElementById('search-box').value.toLowerCase();  // Get the search query
+      const selectedTool = document.getElementById('tool-filter').value;  // Get selected tool
+      filterFAQs(query, selectedTool, selectedCategory);  // Perform filtering
+    });
+
+    document.getElementById('tool-filter').addEventListener('change', (e) => {
+      const query = document.getElementById('search-box').value.toLowerCase();  // Get the search query
+      const selectedTool = e.target.value;  // Get selected tool
+      const selectedCategory = document.getElementById('category-filter').value;  // Get selected category
+      filterFAQs(query, selectedTool, selectedCategory);  // Perform filtering
+    });
+
+    loadGoogleSheetsAPI();
+  </script>
+</body>
+</html>
+
