@@ -152,7 +152,7 @@ function createCard(faq) {
     <div class="faq-card">
       <div class="faq-problem">${faq.problem}</div>
       <div class="faq-solution">${faq.solution}</div>
-       ${faq.link && faq.link.trim() !== '' ? `<a class="read-more" href="${faq.link}" target="_blank">Read More</a>` : ''}
+      ${faq.link && faq.link.trim() !== '' ? `<a class="read-more" href="${faq.link.startsWith('http') ? faq.link : 'https://' + faq.link}" target="_blank">Read More</a>` : ''}
     </div>
   `;
 }
