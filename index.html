@@ -1,3 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How can we help?</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #search-box { width: 100%; padding: 10px; margin-bottom: 20px; }
+
+    #reset-filters {
+      padding: 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    /* Card Styling */
+    .faq-card {
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    
+    .faq-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .faq-problem {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .faq-solution {
+      font-size: 16px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    // Add a class for the truncated solution
+    .truncated-solution {
+      max-height: 50px; // Set the max height to hide overflow
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .expanded-solution {
+      max-height: none; // Allow the full content to be displayed
+    }
+
+    .expand-btn {
+      color: #007bff;
+      cursor: pointer;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    /* Category Buttons */
+    .filter-btnb {
+      padding: 10px 15px;
+      margin: 5px;
+      background-color: blue;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .filter-btnb:hover {
+      background-color: #0056b3;
+    }
+
+    .inactive-category {
+      background-color: lightblue;
+      color: black;
+    }
+
+    /* Tool Buttons */
+    .filter-btnr {
+      padding: 10px 15px;
+      margin: 5px;
+      background-color: green;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .filter-btnr:hover {
+      background-color: #006400;
+    }
+
+    .inactive-tool {
+      background-color: lightgreen;
+      color: black;
+    }
+
+    .filter-container {
+      margin-bottom: 20px;
+    }
+
+    /* Footer for Feedback styling */
+    #feedback-section {
+      margin-top: 30px;
+    }
+
+    .feedback-btn {
+      padding: 10px 15px;
+      margin: 5px;
+      background-color: orange;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .feedback-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .feedback-link {
+      font-weight: bold;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .feedback-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+
+  <!-- Footer for Feedback -->
+  <div id="feedback-section">
+    <h3>Did you find what you were looking for?</h3>
+    <button class="feedback-btn" onclick="handleFeedback('yes')">Yes</button>
+    <button class="feedback-btn" onclick="handleFeedback('no')">No</button>
+    <div id="email-prompt" style="display: none; margin-top: 15px;">
+      <p>We're sorry! You can contact our Service Desk for further assistance.</p>
+      <a href="mailto:servicedesk@k12albemarle.org" class="feedback-link">Email the Service Desk</a>
+    </div>
+  </div>
+
+  <!-- Include Fuse.js for fuzzy searching -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+</head>
+<body>
+  <h1>How can we help?</h1>
+
+  <input type="text" id="search-box" placeholder="Search FAQs by keyword or tag">
+
+  <!-- Filter Container for buttons -->
+  <div class="filter-container" id="category-buttons"></div>
+  <div class="filter-container" id="tool-buttons"></div>
+  <button id="reset-filters" style="display: none;">Reset Filters</button>
+
+  <div id="faq-list"></div>
+
+  <script type="text/javascript">
+    let allFAQs = []; // Global variable to store all FAQs
+    let fuse;  // Variable to store Fuse.js instance
+    let selectedCategory = ''; // Global variable to track selected category
+
+    function handleFeedback(response) {
+      const emailPrompt = document.getElementById('email-prompt');
+    
+      if (response === 'no') {
+        emailPrompt.style.display = 'block'; // Show the email prompt if "No" is clicked
+      } else {
+        alert("Thanks for the feedback. We're glad you found what you needed!"); // Show a simple message if "Yes" is clicked
+      }
+    }
+
+    function loadGoogleSheetsAPI() {
+      var script = document.createElement('script');
+      script.src = 'https://www.gstatic.com/charts/loader.js';
+      script.onload = initGoogleSheets;
+      document.head.appendChild(script);
+    }
+
+    function initGoogleSheets() {
+      google.charts.load('current', { packages: ['corechart'] });
+      google.charts.setOnLoadCallback(fetchFAQData);
+    }
+
+    function fetchFAQData() {
+  const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=0&single=true&output=csv';
+
+  // Fetch the CSV and parse it with PapaParse
+  fetch(spreadsheetURL)
+    .then(response => response.text())
+    .then(csvText => {
+      Papa.parse(csvText, {
+        header: true,  // Use the first row as the header
+        skipEmptyLines: true,  // Skip empty lines
+        complete: function(results) {
+          // Store the parsed data in the allFAQs array
+          allFAQs = results.data.map(row => ({
+            category: row.category || '',
+            tool: row.tool || '',
+            problem: row.problemdescription || '',
+            solution: row.solution ? row.solution.replace(/\n/g, '<br>') : '',  // Replace newlines with <br>
+            video: row.video ? row.video.trim() : null,
+            link: row.link ? row.link.trim() : null
+          }));
+
+          // Display FAQs and populate filters
+          displayFAQs(allFAQs);  // Display all FAQs on load
+          setupFuse();  // Initialize Fuse.js with the FAQ data
+          populateCategoryButtons();  // Create category buttons dynamically
+        },
+        error: function(error) {
+          console.error('Error parsing CSV:', error);
+        }
+      });
+    })
+    .catch(error => console.error('Error fetching the sheet:', error));
+}
+
 function createCard(faq) {
   // Ensure problem and solution fields exist before processing
   if (!faq.problem || !faq.solution) {
@@ -41,3 +272,155 @@ function createCard(faq) {
     </div>
   `;
 }
+
+
+// Toggle the expansion of the solution when the card is clicked
+function toggleSolution(card) {
+  const truncatedSolutionDiv = card.querySelector('.faq-solution');
+  const fullSolutionDiv = card.querySelector('.full-solution');
+  const expandBtn = card.querySelector('.expand-btn');
+
+  if (truncatedSolutionDiv && fullSolutionDiv) {
+    const isExpanded = truncatedSolutionDiv.classList.contains('expanded-solution');
+
+    if (isExpanded) {
+      // Collapse the solution
+      truncatedSolutionDiv.classList.remove('expanded-solution');
+      fullSolutionDiv.style.display = 'none';
+      expandBtn.textContent = expandBtn.textContent.replace('Collapse', 'Read More');  // Reset to "Read More"
+    } else {
+      // Expand the solution
+      truncatedSolutionDiv.classList.add('expanded-solution');
+      fullSolutionDiv.style.display = 'block';
+      expandBtn.textContent = expandBtn.textContent.replace('Read More', 'Collapse');  // Change to "Collapse"
+    }
+  }
+}
+
+
+    function displayFAQs(faqs) {
+      const faqList = document.getElementById('faq-list');
+      if (faqs.length === 0) {
+        faqList.innerHTML = '<p>Please reach out to your schools LTI/TSS team or submit a service desk ticket.</p>';
+      } else {
+        faqList.innerHTML = faqs.map(createCard).join('');
+      }
+    }
+
+    function setupFuse() {
+      const fuseOptions = {
+        keys: ['problem', 'solution', 'tags'],
+        threshold: 0.5,
+        includeScore: true
+      };
+
+      fuse = new Fuse(allFAQs, fuseOptions);
+    }
+
+    // Dynamically create category buttons
+    function populateCategoryButtons() {
+      const categoryButtonsContainer = document.getElementById('category-buttons');
+      const uniqueCategories = [...new Set(allFAQs.map(faq => faq.category))];
+
+      uniqueCategories.forEach(category => {
+        const button = document.createElement('button');
+        button.className = 'filter-btnb';
+        button.textContent = category;
+        button.onclick = () => handleCategoryClick(category);
+        categoryButtonsContainer.appendChild(button);
+      });
+    }
+
+    // Handle category button click
+    function handleCategoryClick(category) {
+      selectedCategory = category;
+      const categoryButtons = document.querySelectorAll('.filter-btnb');
+      
+      // Set active category and change others to inactive
+      categoryButtons.forEach(button => {
+        if (button.textContent === category) {
+          button.classList.remove('inactive-category');
+        } else {
+          button.classList.add('inactive-category');
+        }
+      });
+
+      populateToolButtons(category);  // Show tool buttons when category is selected
+      filterFAQs('', '', category);  // Filter by category
+    }
+
+    // Dynamically create tool buttons based on selected category
+    function populateToolButtons(selectedCategory) {
+      const toolButtonsContainer = document.getElementById('tool-buttons');
+      toolButtonsContainer.innerHTML = '';  // Clear existing tool buttons
+
+      const filteredTools = [...new Set(allFAQs
+        .filter(faq => faq.category === selectedCategory)
+        .map(faq => faq.tool))];
+
+      filteredTools.forEach(tool => {
+        const button = document.createElement('button');
+        button.className = 'filter-btnr';
+        button.textContent = tool;
+        button.onclick = () => handleToolClick(tool);
+        toolButtonsContainer.appendChild(button);
+      });
+
+      toolButtonsContainer.style.display = 'block';  // Show tool buttons after a category is selected
+    }
+
+    // Handle tool button click
+    function handleToolClick(tool) {
+      const toolButtons = document.querySelectorAll('.filter-btnr');
+      
+      // Set active tool and change others to inactive
+      toolButtons.forEach(button => {
+        if (button.textContent === tool) {
+          button.classList.remove('inactive-tool');
+        } else {
+          button.classList.add('inactive-tool');
+        }
+      });
+
+      filterFAQs('', tool, selectedCategory);
+    }
+
+    // Perform filtering
+    function filterFAQs(query = '', selectedTool = '', selectedCategory = '') {
+      let results = allFAQs;
+
+      if (query) {
+        results = fuse.search(query).map(result => result.item);
+      }
+
+      if (selectedTool) {
+        results = results.filter(faq => faq.tool === selectedTool);
+      }
+      if (selectedCategory) {
+        results = results.filter(faq => faq.category === selectedCategory);
+      }
+
+      displayFAQs(results);
+
+      // Show reset button if a filter is applied
+      document.getElementById('reset-filters').style.display = selectedCategory || selectedTool ? 'block' : 'none';
+    }
+
+    // Reset filters
+    document.getElementById('reset-filters').addEventListener('click', () => {
+      document.getElementById('search-box').value = '';  // Clear search box
+      selectedCategory = '';
+      displayFAQs(allFAQs);  // Display all FAQs
+      document.getElementById('tool-buttons').innerHTML = '';  // Clear tool buttons
+      document.getElementById('reset-filters').style.display = 'none';  // Hide reset button
+    });
+
+    document.getElementById('search-box').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      filterFAQs(query, '', selectedCategory);
+    });
+
+    loadGoogleSheetsAPI();
+  </script>
+</body>
+</html>
