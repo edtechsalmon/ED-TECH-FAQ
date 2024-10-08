@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FAQ Search</title>
+  <title>How can we help?</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #search-box { width: 100%; padding: 10px; margin-bottom: 20px; }
 
-#reset-filters {
-  padding: 10px;
-  background-color: red;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-left: 10px;
-}
+    #reset-filters {
+      padding: 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
 
     /* Card Styling */
     .faq-card {
@@ -27,6 +27,7 @@
       background-color: #f9f9f9;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
     }
     
     .faq-card:hover {
@@ -46,69 +47,139 @@
       line-height: 1.5;
     }
 
-    /* Styling for filter dropdowns */
-    select {
-      padding: 10px;
-      margin-right: 10px;
+    // Add a class for the truncated solution
+    .truncated-solution {
+      max-height: 50px; // Set the max height to hide overflow
+      overflow: hidden;
+      transition: max-height 0.3s ease;
     }
 
-    #category-filter {
+    .expanded-solution {
+      max-height: none; // Allow the full content to be displayed
+    }
+
+    .expand-btn {
+      color: #007bff;
+      cursor: pointer;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    /* Category Buttons */
+    .filter-btnb {
+      padding: 10px 15px;
+      margin: 5px;
       background-color: blue;
       color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
-    #tool-filter {
-      background-color: grey;
+    .filter-btnb:hover {
+      background-color: #0056b3;
+    }
+
+    .inactive-category {
+      background-color: lightblue;
+      color: black;
+    }
+
+    /* Tool Buttons */
+    .filter-btnr {
+      padding: 10px 15px;
+      margin: 5px;
+      background-color: green;
       color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
-    #tool-filter.active {
-      background-color: blue;
+    .filter-btnr:hover {
+      background-color: #006400;
+    }
+
+    .inactive-tool {
+      background-color: lightgreen;
+      color: black;
     }
 
     .filter-container {
       margin-bottom: 20px;
     }
 
-    /* Video and Link Styling */
-    .faq-video {
-      margin-top: 10px;
-      margin-bottom: 10px;
+    /* Footer for Feedback styling */
+    #feedback-section {
+      margin-top: 30px;
     }
 
-    .see-more {
-      margin-top: 10px;
+    .feedback-btn {
+      padding: 10px 15px;
+      margin: 5px;
+      background-color: orange;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .feedback-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .feedback-link {
       font-weight: bold;
-      display: block;
       color: #007bff;
+      text-decoration: none;
+    }
+
+    .feedback-link:hover {
+      text-decoration: underline;
     }
   </style>
+
+  <!-- Footer for Feedback -->
+  <div id="feedback-section">
+    <h3>Did you find what you were looking for?</h3>
+    <button class="feedback-btn" onclick="handleFeedback('yes')">Yes</button>
+    <button class="feedback-btn" onclick="handleFeedback('no')">No</button>
+    <div id="email-prompt" style="display: none; margin-top: 15px;">
+      <p>We're sorry! You can contact our Service Desk for further assistance.</p>
+      <a href="mailto:servicedesk@k12albemarle.org" class="feedback-link">Email the Service Desk</a>
+    </div>
+  </div>
 
   <!-- Include Fuse.js for fuzzy searching -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
 </head>
 <body>
-  <h1>FAQ Search</h1>
+  <h1>How can we help?</h1>
 
   <input type="text" id="search-box" placeholder="Search FAQs by keyword or tag">
 
-<!-- Inside your filter-container div -->
-<div class="filter-container">
-  <select id="category-filter">
-    <option value="">Select Category</option>
-  </select>
-  <select id="tool-filter" disabled>
-    <option value="">Select Tool</option>
-  </select>
-  <button id="reset-filters">Reset Filters</button>
-</div>
-
+  <!-- Filter Container for buttons -->
+  <div class="filter-container" id="category-buttons"></div>
+  <div class="filter-container" id="tool-buttons"></div>
+  <button id="reset-filters" style="display: none;">Reset Filters</button>
 
   <div id="faq-list"></div>
 
   <script type="text/javascript">
     let allFAQs = []; // Global variable to store all FAQs
     let fuse;  // Variable to store Fuse.js instance
+    let selectedCategory = ''; // Global variable to track selected category
+
+    function handleFeedback(response) {
+      const emailPrompt = document.getElementById('email-prompt');
+    
+      if (response === 'no') {
+        emailPrompt.style.display = 'block'; // Show the email prompt if "No" is clicked
+      } else {
+        alert("Thanks for the feedback. We're glad you found what you needed!"); // Show a simple message if "Yes" is clicked
+      }
+    }
 
     function loadGoogleSheetsAPI() {
       var script = document.createElement('script');
@@ -136,27 +207,78 @@
             tool: row[1],
             problem: row[2],
             solution: row[3],
-            video: row[4] ? row[4].trim() : null, // Video URL check
-            link: row[5] ? row[5].trim() : null   // Link URL check
+            video: row[4] ? row[4].trim() : null,
+            link: row[5] ? row[5].trim() : null
           }));
+
+          console.log(allFAQs);  // Log the FAQ data to check if it's being fetched correctly
 
           displayFAQs(allFAQs);  // Display all FAQs on load
           setupFuse();  // Initialize Fuse.js with the FAQ data
-          populateFilters();  // Populate dropdown filters
+          populateCategoryButtons();  // Create category buttons dynamically
         })
         .catch(error => console.error('Error fetching the sheet:', error));
     }
 
-function createCard(faq) {
-  return `
-    <div class="faq-card">
-      <div class="faq-problem">${faq.problem}</div>
-      <div class="faq-solution">${faq.solution}</div>
-      ${faq.link && faq.link.trim() !== '' ? `<a class="read-more" href="${faq.link}" target="_blank">Read More</a>` : ''}
-    </div>
-  `;
-}
+  function createCard(faq) {
+    // Ensure problem and solution fields exist before processing
+    if (!faq.problem || !faq.solution) {
+      return '';  // Skip rendering this card if either field is missing
+    }
 
+    const maxLength = 100; // Maximum length for the short solution
+    const isLongSolution = faq.solution.length > maxLength;
+    const truncatedSolution = faq.solution.slice(0, maxLength) + '...';
+
+    // Replace newline characters with <br> for proper HTML rendering
+    const formattedSolution = faq.solution.replace(/\n/g, '<br>');
+
+    // Conditionally add video icon next to "Read More"
+    const videoIcon = faq.video ? ' 🎥' : '';  // Add icon if video exists
+    const externalLink = faq.link ? `<a href="${faq.link}" target="_blank" class="external-link">View More</a>` : '';  // External link button
+
+    return `
+      <div class="faq-card" ${isLongSolution ? 'onclick="toggleSolution(this)"' : ''}>
+        <div class="faq-problem">${faq.problem}</div>
+        <div class="faq-solution ${isLongSolution ? 'truncated-solution' : ''}">
+          ${isLongSolution ? truncatedSolution.replace(/\n/g, '<br>') : formattedSolution}
+        </div>
+        ${isLongSolution ? `<span class="expand-btn">Read More${videoIcon}</span>` : ''}
+        <div class="full-solution" style="display: none;">
+          ${formattedSolution}
+          <!-- Video Embed (Shown only when solution is expanded) -->
+          ${faq.video ? `<div class="faq-video">
+            <iframe width="100%" height="315" src="${faq.video}" frameborder="0" allowfullscreen></iframe>
+          </div>` : ''}
+          <!-- External Link (optional) -->
+          ${externalLink}
+        </div>
+      </div>
+    `;
+  }
+
+  // Toggle the expansion of the solution when the card is clicked
+  function toggleSolution(card) {
+    const truncatedSolutionDiv = card.querySelector('.faq-solution');
+    const fullSolutionDiv = card.querySelector('.full-solution');
+    const expandBtn = card.querySelector('.expand-btn');
+
+    if (truncatedSolutionDiv && fullSolutionDiv) {
+      const isExpanded = truncatedSolutionDiv.classList.contains('expanded-solution');
+
+      if (isExpanded) {
+        // Collapse the solution
+        truncatedSolutionDiv.classList.remove('expanded-solution');
+        fullSolutionDiv.style.display = 'none';
+        expandBtn.textContent = expandBtn.textContent.replace('Collapse', 'Read More');  // Reset to "Read More"
+      } else {
+        // Expand the solution
+        truncatedSolutionDiv.classList.add('expanded-solution');
+        fullSolutionDiv.style.display = 'block';
+        expandBtn.textContent = expandBtn.textContent.replace('Read More', 'Collapse');  // Change to "Collapse"
+      }
+    }
+  }
 
 
     function displayFAQs(faqs) {
@@ -178,6 +300,75 @@ function createCard(faq) {
       fuse = new Fuse(allFAQs, fuseOptions);
     }
 
+    // Dynamically create category buttons
+    function populateCategoryButtons() {
+      const categoryButtonsContainer = document.getElementById('category-buttons');
+      const uniqueCategories = [...new Set(allFAQs.map(faq => faq.category))];
+
+      uniqueCategories.forEach(category => {
+        const button = document.createElement('button');
+        button.className = 'filter-btnb';
+        button.textContent = category;
+        button.onclick = () => handleCategoryClick(category);
+        categoryButtonsContainer.appendChild(button);
+      });
+    }
+
+    // Handle category button click
+    function handleCategoryClick(category) {
+      selectedCategory = category;
+      const categoryButtons = document.querySelectorAll('.filter-btnb');
+      
+      // Set active category and change others to inactive
+      categoryButtons.forEach(button => {
+        if (button.textContent === category) {
+          button.classList.remove('inactive-category');
+        } else {
+          button.classList.add('inactive-category');
+        }
+      });
+
+      populateToolButtons(category);  // Show tool buttons when category is selected
+      filterFAQs('', '', category);  // Filter by category
+    }
+
+    // Dynamically create tool buttons based on selected category
+    function populateToolButtons(selectedCategory) {
+      const toolButtonsContainer = document.getElementById('tool-buttons');
+      toolButtonsContainer.innerHTML = '';  // Clear existing tool buttons
+
+      const filteredTools = [...new Set(allFAQs
+        .filter(faq => faq.category === selectedCategory)
+        .map(faq => faq.tool))];
+
+      filteredTools.forEach(tool => {
+        const button = document.createElement('button');
+        button.className = 'filter-btnr';
+        button.textContent = tool;
+        button.onclick = () => handleToolClick(tool);
+        toolButtonsContainer.appendChild(button);
+      });
+
+      toolButtonsContainer.style.display = 'block';  // Show tool buttons after a category is selected
+    }
+
+    // Handle tool button click
+    function handleToolClick(tool) {
+      const toolButtons = document.querySelectorAll('.filter-btnr');
+      
+      // Set active tool and change others to inactive
+      toolButtons.forEach(button => {
+        if (button.textContent === tool) {
+          button.classList.remove('inactive-tool');
+        } else {
+          button.classList.add('inactive-tool');
+        }
+      });
+
+      filterFAQs('', tool, selectedCategory);
+    }
+
+    // Perform filtering
     function filterFAQs(query = '', selectedTool = '', selectedCategory = '') {
       let results = allFAQs;
 
@@ -193,92 +384,26 @@ function createCard(faq) {
       }
 
       displayFAQs(results);
+
+      // Show reset button if a filter is applied
+      document.getElementById('reset-filters').style.display = selectedCategory || selectedTool ? 'block' : 'none';
     }
 
-    function populateFilters() {
-      const toolFilter = document.getElementById('tool-filter');
-      const categoryFilter = document.getElementById('category-filter');
-
-      const uniqueCategories = [...new Set(allFAQs.map(faq => faq.category))];
-
-      uniqueCategories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category;
-        option.textContent = category;
-        categoryFilter.appendChild(option);
-      });
-    }
-
-    // Populate tool filter based on selected category
-    function populateTools(selectedCategory) {
-      const toolFilter = document.getElementById('tool-filter');
-      toolFilter.innerHTML = '<option value="">Select Tool</option>';  // Clear existing options
-      toolFilter.disabled = !selectedCategory;  // Enable/disable tool filter based on category selection
-
-      if (selectedCategory) {
-        toolFilter.classList.add('active');  // Add active class to change background color
-      } else {
-        toolFilter.classList.remove('active');  // Remove active class when no category is selected
-      }
-
-      const filteredTools = [...new Set(allFAQs
-        .filter(faq => faq.category === selectedCategory)
-        .map(faq => faq.tool))];  // Get unique tools for the selected category
-
-      filteredTools.forEach(tool => {
-        const option = document.createElement('option');
-        option.value = tool;
-        option.textContent = tool;
-        toolFilter.appendChild(option);
-      });
-    }
-// Event listener for the Reset Filters button
-document.getElementById('reset-filters').addEventListener('click', () => {
-  // Clear the search box
-  document.getElementById('search-box').value = '';
-  
-  // Reset the category filter
-  document.getElementById('category-filter').value = '';
-  
-  // Reset and disable the tool filter
-  const toolFilter = document.getElementById('tool-filter');
-  toolFilter.value = '';
-  toolFilter.disabled = true;
-  toolFilter.classList.remove('active'); // Remove active class if any
-  
-  // Re-populate the tool filter options (optional)
-  toolFilter.innerHTML = '<option value="">Select Tool</option>';
-  
-  // Display all FAQs
-  displayFAQs(allFAQs);
-});
-
-
+    // Reset filters
+    document.getElementById('reset-filters').addEventListener('click', () => {
+      document.getElementById('search-box').value = '';  // Clear search box
+      selectedCategory = '';
+      displayFAQs(allFAQs);  // Display all FAQs
+      document.getElementById('tool-buttons').innerHTML = '';  // Clear tool buttons
+      document.getElementById('reset-filters').style.display = 'none';  // Hide reset button
+    });
 
     document.getElementById('search-box').addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();  // Get the search query
-      const selectedTool = document.getElementById('tool-filter').value;  // Get selected tool
-      const selectedCategory = document.getElementById('category-filter').value;  // Get selected category
-      filterFAQs(query, selectedTool, selectedCategory);  // Perform filtering
-    });
-
-    document.getElementById('category-filter').addEventListener('change', (e) => {
-      const selectedCategory = e.target.value;  // Get selected category
-      populateTools(selectedCategory);  // Populate tools based on selected category
-      const query = document.getElementById('search-box').value.toLowerCase();  // Get the search query
-      const selectedTool = document.getElementById('tool-filter').value;  // Get selected tool
-      filterFAQs(query, selectedTool, selectedCategory);  // Perform filtering
-    });
-
-    document.getElementById('tool-filter').addEventListener('change', (e) => {
-      const query = document.getElementById('search-box').value.toLowerCase();  // Get the search query
-      const selectedTool = e.target.value;  // Get selected tool
-      const selectedCategory = document.getElementById('category-filter').value;  // Get selected category
-      filterFAQs(query, selectedTool, selectedCategory);  // Perform filtering
+      const query = e.target.value.toLowerCase();
+      filterFAQs(query, '', selectedCategory);
     });
 
     loadGoogleSheetsAPI();
   </script>
 </body>
 </html>
-
