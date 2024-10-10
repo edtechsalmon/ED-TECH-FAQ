@@ -239,54 +239,39 @@ function createCard(faq) {
   const isLongSolution = faq.solution.length > maxLength;
   const truncatedSolution = faq.solution.slice(0, maxLength) + '...';
 
-  // Use the solution HTML directly (assuming it is already formatted in the spreadsheet)
-  let formattedSolution = faq.solution;
+  // Replace newline characters with <br> for proper HTML rendering
+  const formattedSolution = faq.solution.replace(/\n/g, '<br>');
 
-  // Use the video link directly
-  let videoLink = '';
-  if (faq.video) {
-    videoLink = `<a href="${faq.video}" target="_blank" class="external-link">Watch Video</a>`;
+  // Convert YouTube URL to embed format
+  let embedVideoUrl = '';
+  if (faq.video && faq.video.includes('youtube.com/watch')) {
+    const videoId = faq.video.split('v=')[1];  // Extract the video ID from the URL
+    embedVideoUrl = `https://www.youtube.com/embed/${videoId}`;  // Create the embed URL
   }
 
+  // Conditionally add video icon next to "Read More"
+  const videoIcon = faq.video ? ' 🎥' : '';  // Add icon if video exists
+  const externalLink = faq.link ? `<a href="${faq.link}" target="_blank" class="external-link">View More</a>` : '';  // External link button
+
   return `
-    <div class="faq-card">
+    <div class="faq-card" ${isLongSolution ? 'onclick="toggleSolution(this)"' : ''}>
       <div class="faq-problem">${faq.problem}</div>
       <div class="faq-solution ${isLongSolution ? 'truncated-solution' : ''}">
-        ${isLongSolution ? truncatedSolution : formattedSolution}
+        ${isLongSolution ? truncatedSolution.replace(/\n/g, '<br>') : formattedSolution}
       </div>
-      ${isLongSolution ? '<span class="expand-btn">Read More</span>' : ''}
+      ${isLongSolution ? `<span class="expand-btn">Read More${videoIcon}</span>` : ''}
       <div class="full-solution" style="display: none;">
-        ${formattedSolution}  <!-- This renders the full solution as HTML -->
-        ${videoLink}  <!-- Video link added here -->
-        ${faq.link ? `<a href="${faq.link}" target="_blank" class="external-link">View More</a>` : ''}
+        ${formattedSolution}
+        <!-- Video Embed (Shown only when solution is expanded) -->
+        ${embedVideoUrl ? `<div class="faq-video">
+          <iframe width="100%" height="315" src="${embedVideoUrl}" frameborder="0" allowfullscreen></iframe>
+        </div>` : ''}
+        <!-- External Link (optional) -->
+        ${externalLink}
       </div>
     </div>
   `;
 }
-
-// When rendering the full solution, use .innerHTML to properly render HTML content
-function toggleSolution(card) {
-  const truncatedSolutionDiv = card.querySelector('.faq-solution');
-  const fullSolutionDiv = card.querySelector('.full-solution');
-  const expandBtn = card.querySelector('.expand-btn');
-
-  if (truncatedSolutionDiv && fullSolutionDiv) {
-    const isExpanded = truncatedSolutionDiv.classList.contains('expanded-solution');
-
-    if (isExpanded) {
-      // Collapse the solution
-      truncatedSolutionDiv.classList.remove('expanded-solution');
-      fullSolutionDiv.style.display = 'none';
-      expandBtn.textContent = 'Read More';
-    } else {
-      // Expand the solution
-      truncatedSolutionDiv.classList.add('expanded-solution');
-      fullSolutionDiv.style.display = 'block';
-      expandBtn.textContent = 'Collapse';
-    }
-  }
-}
-
 
 
 // Toggle the expansion of the solution when the card is clicked
