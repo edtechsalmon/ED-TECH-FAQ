@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FAQ Search</title>
+  <title>How can we help?</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #search-box { width: 100%; padding: 10px; margin-bottom: 20px; }
@@ -17,7 +17,6 @@
       background-color: #f9f9f9;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s, box-shadow 0.2s;
-      cursor: pointer;
     }
     
     .faq-card:hover {
@@ -35,17 +34,8 @@
       font-size: 16px;
       color: #555;
       line-height: 1.5;
-    }
-
-    /* Add a class for the truncated solution */
-    .truncated-solution {
-      max-height: 50px; /* Set the max height to hide overflow */
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-
-    .expanded-solution {
-      max-height: none; /* Allow the full content to be displayed */
+      display: none;
+      margin-top: 15px;
     }
 
     .expand-btn {
@@ -56,53 +46,68 @@
       margin-top: 10px;
     }
 
-    /* Footer for Feedback styling */
+    /* Feedback Section Styling */
     #feedback-section {
-      margin-top: 30px;
+      display: none;
+      margin-top: 20px;
     }
 
     .feedback-btn {
-      padding: 10px 15px;
-      margin: 5px;
+      padding: 10px;
       background-color: orange;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin-right: 10px;
     }
 
-    .feedback-btn:hover {
-      background-color: #0056b3;
-    }
-
-    .feedback-link {
-      font-weight: bold;
-      color: #007bff;
-      text-decoration: none;
-    }
-
-    .feedback-link:hover {
-      text-decoration: underline;
+    #reset-search {
+      padding: 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
     }
   </style>
-
   <!-- Include Fuse.js for fuzzy searching -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-
 </head>
 <body>
-  <h1>Search FAQs</h1>
+  <h1>How can we help?</h1>
 
   <input type="text" id="search-box" placeholder="Search FAQs by keyword or tag">
+  <button id="reset-search" onclick="resetSearch()">Reset</button>
 
   <div id="faq-list"></div>
+
+  <div id="feedback-section">
+    <h3>Did you find what you were looking for?</h3>
+    <button class="feedback-btn" onclick="handleFeedback('yes')">Yes</button>
+    <button class="feedback-btn" onclick="handleFeedback('no')">No</button>
+  </div>
 
   <script type="text/javascript">
     let allFAQs = []; // Global variable to store all FAQs
     let fuse;  // Variable to store Fuse.js instance
+    let lastSearchQuery = ''; // Track the last search query
 
     function loadGoogleSheetsAPI() {
+      var script = document.createElement('script');
+      script.src = 'https://www.gstatic.com/charts/loader.js';
+      script.onload = initGoogleSheets;
+      document.head.appendChild(script);
+    }
+
+    function initGoogleSheets() {
+      google.charts.load('current', { packages: ['corechart'] });
+      google.charts.setOnLoadCallback(fetchFAQData);
+    }
+
+    function fetchFAQData() {
       const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=0&single=true&output=csv';
 
       // Fetch the CSV and parse it with PapaParse
@@ -118,11 +123,10 @@
                 category: row.category || '',
                 tool: row.tool || '',
                 problem: row.problemdescription || '',
-                solution: row.solution ? row.solution.replace(/\n/g, '<br>') : '',  // Replace newlines with <br>
-                video: row.video ? row.video.trim() : null,
-                link: row.link ? row.link.trim() : null
+                solutionHtml: row.solutionhtml || ''  // Use the solution HTML column directly
               }));
 
+              // Setup Fuse.js for searching
               setupFuse();  // Initialize Fuse.js with the FAQ data
             },
             error: function(error) {
@@ -135,94 +139,96 @@
 
     function createCard(faq) {
       // Ensure problem and solution fields exist before processing
-      if (!faq.problem || !faq.solution) {
+      if (!faq.problem || !faq.solutionHtml) {
         return '';  // Skip rendering this card if either field is missing
       }
 
-      const maxLength = 100; // Maximum length for the short solution
-      const isLongSolution = faq.solution.length > maxLength;
-      const truncatedSolution = faq.solution.slice(0, maxLength) + '...';
-
-      // Replace newline characters with <br> for proper HTML rendering
-      const formattedSolution = faq.solution.replace(/\n/g, '<br>');
-
-      // Conditionally add video icon next to "Read More"
-      const videoIcon = faq.video ? ' 🎥' : '';  // Add icon if video exists
-      const externalLink = faq.link ? `<a href="${faq.link}" target="_blank" class="external-link">View More</a>` : '';  // External link button
-
       return `
-        <div class="faq-card" ${isLongSolution ? 'onclick="toggleSolution(this)"' : ''}>
+        <div class="faq-card">
           <div class="faq-problem">${faq.problem}</div>
-          <div class="faq-solution ${isLongSolution ? 'truncated-solution' : ''}">
-            ${isLongSolution ? truncatedSolution.replace(/\n/g, '<br>') : formattedSolution}
-          </div>
-          ${isLongSolution ? `<span class="expand-btn">Read More${videoIcon}</span>` : ''}
-          <div class="full-solution" style="display: none;">
-            ${formattedSolution}
-            <!-- External Link (optional) -->
-            ${externalLink}
-          </div>
+          <button class="expand-btn" onclick="toggleSolution(this.parentElement)">View Solution</button>
+          <div class="faq-solution">${faq.solutionHtml}</div>
         </div>
       `;
     }
 
-    // Toggle the expansion of the solution when the card is clicked
+    // Toggle the expansion of the solution when the button is clicked
     function toggleSolution(card) {
-      const truncatedSolutionDiv = card.querySelector('.faq-solution');
-      const fullSolutionDiv = card.querySelector('.full-solution');
-      const expandBtn = card.querySelector('.expand-btn');
+      const solutionDiv = card.querySelector('.faq-solution');
 
-      if (truncatedSolutionDiv && fullSolutionDiv) {
-        const isExpanded = truncatedSolutionDiv.classList.contains('expanded-solution');
-
-        if (isExpanded) {
-          // Collapse the solution
-          truncatedSolutionDiv.classList.remove('expanded-solution');
-          fullSolutionDiv.style.display = 'none';
-          expandBtn.textContent = expandBtn.textContent.replace('Collapse', 'Read More');  // Reset to "Read More"
-        } else {
-          // Expand the solution
-          truncatedSolutionDiv.classList.add('expanded-solution');
-          fullSolutionDiv.style.display = 'block';
-          expandBtn.textContent = expandBtn.textContent.replace('Read More', 'Collapse');  // Change to "Collapse"
-        }
+      if (solutionDiv.style.display === 'none' || solutionDiv.style.display === '') {
+        // Expand the solution
+        solutionDiv.style.display = 'block';
+      } else {
+        // Collapse the solution
+        solutionDiv.style.display = 'none';
       }
     }
 
     function displayFAQs(faqs) {
       const faqList = document.getElementById('faq-list');
       if (faqs.length === 0) {
-        faqList.innerHTML = ''; // Initially empty until user starts typing
+        faqList.innerHTML = '<p>No FAQs match your search. Please try different keywords.</p>';
+        document.getElementById('feedback-section').style.display = 'block';
       } else {
         faqList.innerHTML = faqs.map(createCard).join('');
+        document.getElementById('feedback-section').style.display = 'block';
       }
     }
 
     function setupFuse() {
       const fuseOptions = {
-        keys: ['problem', 'solution', 'tags'],
+        keys: ['problem', 'solutionHtml'],
         threshold: 0.5,
         includeScore: true
       };
 
       fuse = new Fuse(allFAQs, fuseOptions);
+
+      // Set up the search functionality
+      document.getElementById('search-box').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        lastSearchQuery = query; // Update last search query
+        if (query) {
+          const results = fuse.search(query).map(result => result.item);
+          displayFAQs(results);
+        } else {
+          document.getElementById('faq-list').innerHTML = '';
+          document.getElementById('feedback-section').style.display = 'none';
+        }
+      });
     }
 
-    // Perform filtering
-    function filterFAQs(query = '') {
-      if (query.trim() === '') {
-        displayFAQs([]); // Clear results when query is empty
-        return;
-      }
+    function handleFeedback(response) {
+      // Log the feedback response along with the last search query
+      const payload = {
+        searchQuery: lastSearchQuery,
+        feedback: response
+      };
 
-      const results = fuse.search(query).map(result => result.item);
-      displayFAQs(results);
+      // Send the data to Google Apps Script
+      fetch('https://script.google.com/macros/s/AKfycbxYL4wVQGg6PfqTmQOQEd1Qv1fcodLnHLKzdzW0zr0ur4sfAF9LDRogqqtiQ_cRK7Xgnw/exec', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Feedback logged successfully:', data);
+        alert('Thank you for your feedback!');
+      })
+      .catch(error => {
+        console.error('Error logging feedback:', error);
+      });
     }
 
-    document.getElementById('search-box').addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-      filterFAQs(query);
-    });
+    function resetSearch() {
+      document.getElementById('search-box').value = '';  // Clear search box
+      document.getElementById('faq-list').innerHTML = '';  // Clear FAQ list
+      document.getElementById('feedback-section').style.display = 'none';  // Hide feedback section
+    }
 
     loadGoogleSheetsAPI();
   </script>
