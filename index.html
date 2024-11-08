@@ -76,7 +76,6 @@
   <!-- Include Fuse.js for fuzzy searching -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.4.1/dist/email.min.js"></script>
 </head>
 <body>
   <h1>Frequently Asked Questions</h1>
@@ -87,7 +86,9 @@
 
   <div id="feedback-section">
     <h3>Didn't find what you were looking for?</h3>
-    <button class="feedback-btn" onclick="handleFeedback('no')">Submit Feedback</button>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfoVMsSXr7yRn1pT9KXDCf561Ev68bfCMz-CD5opolrB8T-hw/viewform" target="_blank">
+      <button class="feedback-btn">Submit Feedback</button>
+    </a>
   </div>
 
   <script type="text/javascript">
@@ -169,7 +170,7 @@
     function displayFAQs(faqs) {
       const faqList = document.getElementById('faq-list');
       if (faqs.length === 0) {
-        faqList.innerHTML = '<p>No FAQs match your search. Please try different keywords or <button class="feedback-btn" onclick="handleFeedback(\'no\')">Submit Feedback</button></p>';
+        faqList.innerHTML = '<p>No FAQs match your search. Please try different keywords or <a href="https://docs.google.com/forms/d/e/1FAIpQLSfoVMsSXr7yRn1pT9KXDCf561Ev68bfCMz-CD5opolrB8T-hw/viewform" target="_blank"><button class="feedback-btn">Submit Feedback</button></a></p>';
         document.getElementById('feedback-section').style.display = 'none';
       } else {
         faqList.innerHTML = faqs.map(createCard).join('');
@@ -198,28 +199,6 @@
           document.getElementById('feedback-section').style.display = 'none';
         }
       });
-    }
-
-    function handleFeedback(response) {
-      // Log the feedback response along with the last search query
-      const emailParams = {
-        service_id: 'service_vljk3jo',
-        template_id: 'template_poliy4g',
-        user_id: 'Gv10abVpFAIOO_VIn',
-        template_params: {
-          'search_query': lastSearchQuery,
-          'feedback': response,
-          'to_email': 'ewunderston@k12albemarle.org'
-        }
-      };
-
-      emailjs.send(emailParams.service_id, emailParams.template_id, emailParams.template_params, emailParams.user_id)
-        .then(function(response) {
-          console.log('SUCCESS!', response.status, response.text);
-          alert('Thank you for your feedback!');
-        }, function(error) {
-          console.error('FAILED...', error);
-        });
     }
 
     loadGoogleSheetsAPI();
