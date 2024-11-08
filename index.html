@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>How can we help?</title>
+  <title>Frequently Asked Questions</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #search-box { width: 100%; padding: 10px; margin-bottom: 20px; }
@@ -17,6 +17,7 @@
       background-color: #f9f9f9;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
     }
     
     .faq-card:hover {
@@ -75,9 +76,10 @@
   <!-- Include Fuse.js for fuzzy searching -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.4.1/dist/email.min.js"></script>
 </head>
 <body>
-  <h1>How can we help?</h1>
+  <h1>Frequently Asked Questions</h1>
 
   <input type="text" id="search-box" placeholder="Search FAQs by keyword or tag">
   <button id="reset-search" onclick="resetSearch()">Reset</button>
@@ -85,9 +87,8 @@
   <div id="faq-list"></div>
 
   <div id="feedback-section">
-    <h3>Did you find what you were looking for?</h3>
-    <button class="feedback-btn" onclick="handleFeedback('yes')">Yes</button>
-    <button class="feedback-btn" onclick="handleFeedback('no')">No</button>
+    <h3>Didn't find what you were looking for?</h3>
+    <button class="feedback-btn" onclick="handleFeedback('no')">Submit Feedback</button>
   </div>
 
   <script type="text/javascript">
@@ -168,11 +169,11 @@
     function displayFAQs(faqs) {
       const faqList = document.getElementById('faq-list');
       if (faqs.length === 0) {
-        faqList.innerHTML = '<p>No FAQs match your search. Please try different keywords.</p>';
-        document.getElementById('feedback-section').style.display = 'block';
+        faqList.innerHTML = '<p>No FAQs match your search. Please try different keywords or <button class="feedback-btn" onclick="handleFeedback(\'no\')">Submit Feedback</button></p>';
+        document.getElementById('feedback-section').style.display = 'none';
       } else {
         faqList.innerHTML = faqs.map(createCard).join('');
-        document.getElementById('feedback-section').style.display = 'block';
+        document.getElementById('feedback-section').style.display = 'none';
       }
     }
 
@@ -201,27 +202,24 @@
 
     function handleFeedback(response) {
       // Log the feedback response along with the last search query
-      const payload = {
-        searchQuery: lastSearchQuery,
-        feedback: response
+      const emailParams = {
+        service_id: 'service_vljk3jo',
+        template_id: 'template_poliy4g',
+        user_id: 'Gv10abVpFAIOO_VIn',
+        template_params: {
+          'search_query': lastSearchQuery,
+          'feedback': response,
+          'to_email': 'ewunderston@k12albemarle.org'
+        }
       };
 
-      // Send the data to Google Apps Script
-      fetch('https://script.google.com/macros/s/AKfycbxYL4wVQGg6PfqTmQOQEd1Qv1fcodLnHLKzdzW0zr0ur4sfAF9LDRogqqtiQ_cRK7Xgnw/exec', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Feedback logged successfully:', data);
-        alert('Thank you for your feedback!');
-      })
-      .catch(error => {
-        console.error('Error logging feedback:', error);
-      });
+      emailjs.send(emailParams.service_id, emailParams.template_id, emailParams.template_params, emailParams.user_id)
+        .then(function(response) {
+          console.log('SUCCESS!', response.status, response.text);
+          alert('Thank you for your feedback!');
+        }, function(error) {
+          console.error('FAILED...', error);
+        });
     }
 
     function resetSearch() {
