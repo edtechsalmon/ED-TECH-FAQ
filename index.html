@@ -122,6 +122,7 @@
               allFAQs = results.data.map(row => ({
                 category: row.category || '',
                 tool: row.tool || '',
+                tags: row.tags || '',
                 problem: row.problemdescription || '',
                 solutionHtml: row.solutionhtml || ''  // Use the solution HTML column directly
               }));
@@ -178,7 +179,7 @@
 
     function setupFuse() {
       const fuseOptions = {
-        keys: ['problem', 'solutionHtml'],
+        keys: ['problem', 'solutionHtml', 'tool', 'tags'],
         threshold: 0.5,
         includeScore: true
       };
