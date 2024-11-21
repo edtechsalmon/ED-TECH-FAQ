@@ -182,7 +182,7 @@
               // Store the parsed data in the allFAQs array
               allFAQs = results.data.filter(row => row.Approved === 'TRUE').map(row => ({
                 category: row.Category || '',
-                tool: row.Tool || '',
+                topic: row.Topic || '',
                 tags: row.Tags || '',
                 problem: row.Problem_Question || '',
                 solutionHtml: row.solutionHtml || '',  // Use the solution HTML column directly
@@ -252,7 +252,7 @@
 
     function setupFuse() {
       const fuseOptions = {
-        keys: ['problem', 'solutionHtml', 'tool', 'tags'],
+        keys: ['problem', 'solutionHtml', 'topic', 'tags'],
         threshold: 0.5,
         includeScore: true
       };
