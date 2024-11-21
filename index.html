@@ -7,11 +7,20 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     #search-box {
-      width: 80%;
+      width: 70%;
+      max-width: 600px;
       padding: 15px;
       margin: 20px auto;
       display: block;
-      position: relative;
+      border-radius: 25px;
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.2s;
+    }
+
+    #search-box:focus {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      outline: none;
     }
 
     #search-box::-webkit-search-cancel-button {
@@ -28,6 +37,7 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
+      position: relative;
     }
     
     .faq-card:hover {
@@ -55,12 +65,21 @@
       font-weight: bold;
       display: inline-block;
       margin-top: 10px;
+      position: absolute;
+      right: 20px;
+      top: 20px;
     }
 
     /* Feedback Section Styling */
     #feedback-section {
       display: none;
       margin-top: 20px;
+      text-align: center;
+    }
+
+    #feedback-section p {
+      display: inline;
+      margin-right: 10px;
     }
 
     .feedback-btn {
@@ -70,24 +89,46 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      margin-right: 10px;
     }
+
+    /* Featured FAQs Styling */
+    #featured-faqs {
+      margin-bottom: 30px;
+        padding: 20px;
+        background-color: #fffbec; /* Light yellow background for emphasis */
+        border: 2px solid #ffd700; /* Gold border for standout effect */
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2); /* Subtle glow effect */
+    }
+
+    #featured-title {
+      font-size: 24px;
+        font-weight: bold;
+        color: #d4a017; /* Darker shade of gold for title */
+        margin-bottom: 20px;
+        text-align: center; /* Center the title */
+     }
   </style>
   <!-- Include Fuse.js for fuzzy searching -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
-  <h1>Frequently Asked Questions</h1>
+  <h1 style="text-align: center;">Frequently Asked Questions</h1>
 
   <input type="search" id="search-box" placeholder="Search FAQs by keyword or tag">
+
+  <div id="featured-faqs">
+    <div id="featured-title">Featured FAQs</div>
+    <div id="featured-list"></div>
+  </div>
 
   <div id="faq-list"></div>
 
   <div id="feedback-section">
-    <h3>Didn't find what you were looking for?</h3>
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfoVMsSXr7yRn1pT9KXDCf561Ev68bfCMz-CD5opolrB8T-hw/viewform" target="_blank">
-      <button class="feedback-btn">Submit Feedback</button>
+    <p>Didn't find what you were looking for?</p>
+    <a href="https://forms.gle/PNmHfnkTT81Q3MhH7" target="_blank">
+      <button class="feedback-btn">Submit FAQ Request</button>
     </a>
   </div>
 
@@ -109,7 +150,7 @@
     }
 
     function fetchFAQData() {
-      const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=0&single=true&output=csv';
+      const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=568968512&single=true&output=csv';
 
       // Fetch the CSV and parse it with PapaParse
       fetch(spreadsheetURL)
@@ -120,13 +161,17 @@
             skipEmptyLines: true,  // Skip empty lines
             complete: function(results) {
               // Store the parsed data in the allFAQs array
-              allFAQs = results.data.map(row => ({
+              allFAQs = results.data.filter(row => row.approved === 'TRUE').map(row => ({
                 category: row.category || '',
                 tool: row.tool || '',
                 tags: row.tags || '',
                 problem: row.problemdescription || '',
-                solutionHtml: row.solutionhtml || ''  // Use the solution HTML column directly
+                solutionHtml: row.solutionHtml || '',  // Use the solution HTML column directly
+                featured: row.featured === 'TRUE'  // Check if the FAQ is featured
               }));
+
+              // Display featured FAQs
+              displayFeaturedFAQs();
 
               // Setup Fuse.js for searching
               setupFuse();  // Initialize Fuse.js with the FAQ data
@@ -146,35 +191,43 @@
       }
 
       return `
-        <div class="faq-card">
+        <div class="faq-card" onclick="toggleSolution(this)">
           <div class="faq-problem">${faq.problem}</div>
-          <button class="expand-btn" onclick="toggleSolution(this.parentElement)">View Solution</button>
+          <button class="expand-btn" onclick="event.stopPropagation(); toggleSolution(this.parentElement)">View Solution</button>
           <div class="faq-solution">${faq.solutionHtml}</div>
         </div>
       `;
     }
 
-    // Toggle the expansion of the solution when the button is clicked
+    // Toggle the expansion of the solution when the button is clicked or card is clicked
     function toggleSolution(card) {
       const solutionDiv = card.querySelector('.faq-solution');
+      const expandBtn = card.querySelector('.expand-btn');
 
       if (solutionDiv.style.display === 'none' || solutionDiv.style.display === '') {
         // Expand the solution
         solutionDiv.style.display = 'block';
+        expandBtn.textContent = 'Hide Solution';
       } else {
         // Collapse the solution
         solutionDiv.style.display = 'none';
+        expandBtn.textContent = 'View Solution';
       }
     }
 
     function displayFAQs(faqs) {
       const faqList = document.getElementById('faq-list');
-      if (faqs.length === 0) {
-        faqList.innerHTML = '<p>No FAQs match your search. Please try different keywords or <a href="https://docs.google.com/forms/d/e/1FAIpQLSfoVMsSXr7yRn1pT9KXDCf561Ev68bfCMz-CD5opolrB8T-hw/viewform" target="_blank"><button class="feedback-btn">Submit Feedback</button></a></p>';
-        document.getElementById('feedback-section').style.display = 'none';
+      faqList.innerHTML = faqs.map(createCard).join('');
+      document.getElementById('feedback-section').style.display = 'block';
+    }
+
+    function displayFeaturedFAQs() {
+      const featuredFAQs = allFAQs.filter(faq => faq.featured);
+      const featuredList = document.getElementById('featured-list');
+      if (featuredFAQs.length > 0) {
+        featuredList.innerHTML = featuredFAQs.map(createCard).join('');
       } else {
-        faqList.innerHTML = faqs.map(createCard).join('');
-        document.getElementById('feedback-section').style.display = 'none';
+        document.getElementById('featured-faqs').style.display = 'none';
       }
     }
 
@@ -186,19 +239,32 @@
       };
 
       fuse = new Fuse(allFAQs, fuseOptions);
+        
+      //setup debounce to reduce search frequency
+      function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+      }
 
       // Set up the search functionality
-      document.getElementById('search-box').addEventListener('input', (e) => {
+      document.getElementById('search-box').addEventListener('input', debounce((e) => {
         const query = e.target.value.toLowerCase();
         lastSearchQuery = query; // Update last search query
+
+        // Show feedback section when typing starts
         if (query) {
           const results = fuse.search(query).map(result => result.item);
           displayFAQs(results);
+          document.getElementById('featured-faqs').style.display = 'none'; // Hide featured FAQs when searching
         } else {
           document.getElementById('faq-list').innerHTML = '';
           document.getElementById('feedback-section').style.display = 'none';
+          document.getElementById('featured-faqs').style.display = 'block'; // Show featured FAQs when no search
         }
-      });
+      }, 300));
     }
 
     loadGoogleSheetsAPI();
