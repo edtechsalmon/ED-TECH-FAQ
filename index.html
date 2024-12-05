@@ -109,24 +109,31 @@
         text-align: center; /* Center the title */
     }
 
-    .featured-list {
+    #featured-list {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 20px;
     }
 
-    .featured-item {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s, box-shadow 0.2s;
-        cursor: pointer;
+    /* View All FAQs Button */
+    .view-all-btn {
+      display: block;
+      padding: 10px 15px;
+      margin: 20px auto;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      width: fit-content;
     }
 
-    .feature
+    .view-all-btn:hover {
+      background-color: #0056b3;
+    }
 
-     }
   </style>
   <!-- Include Fuse.js for fuzzy searching -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
@@ -143,6 +150,8 @@
   </div>
 
   <div id="faq-list"></div>
+
+  <a href="javascript:void(0)" id="view-all-btn" class="view-all-btn" onclick="viewAllFAQs()">View All FAQs</a>
 
   <div id="feedback-section">
     <p>Didn't find what you were looking for?</p>
@@ -212,7 +221,6 @@
       return `
         <div class="faq-card" onclick="toggleSolution(this)">
           <div class="faq-problem">${faq.problem}</div>
-          <button class="expand-btn" onclick="event.stopPropagation(); toggleSolution(this.parentElement)">View Solution</button>
           <div class="faq-solution">${faq.solutionHtml}</div>
         </div>
       `;
@@ -278,12 +286,34 @@
           const results = fuse.search(query).map(result => result.item);
           displayFAQs(results);
           document.getElementById('featured-faqs').style.display = 'none'; // Hide featured FAQs when searching
+          document.getElementById('view-all-btn').style.display = 'none';
         } else {
           document.getElementById('faq-list').innerHTML = '';
           document.getElementById('feedback-section').style.display = 'none';
           document.getElementById('featured-faqs').style.display = 'block'; // Show featured FAQs when no search
+          document.getElementById('view-all-btn').style.display = 'block';
         }
       }, 300));
+    }
+
+    function viewAllFAQs() {
+      const groupedFAQs = allFAQs.reduce((group, faq) => {
+        if (!group[faq.category]) group[faq.category] = [];
+        group[faq.category].push(faq);
+        return group;
+      }, {});
+
+      const faqList = document.getElementById('faq-list');
+      faqList.innerHTML = Object.entries(groupedFAQs).map(([category, faqs]) => {
+        return `
+          <div>
+            <h2>${category}</h2>
+            ${faqs.map(createCard).join('')}
+          </div>
+        `;
+      }).join('');
+      document.getElementById('view-all-btn').style.display = 'none';
+      document.getElementById('feedback-section').style.display = 'block';
     }
 
     loadGoogleSheetsAPI();
