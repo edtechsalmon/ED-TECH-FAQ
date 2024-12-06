@@ -60,9 +60,9 @@
     /* Card Styling */
     .faq-card {
       border: 1px solid #ddd;
-      padding: 20px;
-      margin-bottom: 15px;
-      border-radius: 15px;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
       background-color: #ffffff;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
@@ -199,6 +199,21 @@
       background: linear-gradient(45deg, #d70000, #ff3333);
       transform: scale(1.05);
     }
+
+    /* Two Column Layout for FAQ Groups */
+    .faq-list-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+  /* One Column layout for FAQ filtered by topic*/
+  .faq-list-single-column {
+    display: block;
+    margin: 0 auto;
+  }
+  
+
   </style>
   <!-- Include Google Fonts and Fuse.js for fuzzy searching -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -226,7 +241,7 @@
     <div id="featured-list"></div>
   </div>
 
-  <div id="faq-list"></div>
+  <div id="faq-list" class="faq-list-container"></div>
 
   <div id="feedback-section">
     <p>Didn't find what you were looking for?</p>
@@ -305,6 +320,8 @@
     function filterByTopic(topic) {
       if (topic) {
         const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
+        const faqList = document.getElementById('faq-list');
+        faqList.className = 'faq-list-single-column';  // Apply single-column class for filtering
         displayFAQs(filteredFAQs);
         document.getElementById('featured-faqs').style.display = 'none';
         document.getElementById('view-all-btn').style.display = 'none';
@@ -399,24 +416,36 @@
 
     function viewAllFAQs() {
       const groupedFAQs = allFAQs.reduce((group, faq) => {
-        if (!group[faq.category]) group[faq.category] = [];
-        group[faq.category].push(faq);
+        if (!group[faq.topic]) group[faq.topic] = [];
+        group[faq.topic].push(faq);
         return group;
       }, {});
 
       const faqList = document.getElementById('faq-list');
-      faqList.innerHTML = Object.entries(groupedFAQs).map(([category, faqs]) => {
+      faqList.className = 'faq-list-container';  // Apply two-column class
+      faqList.innerHTML = Object.entries(groupedFAQs).map(([topic, faqs]) => {
         return `
-          <div>
-            <h2>${category}</h2>
-            ${faqs.map(createCard).join('')}
+          <div class="faq-group">
+            <h2>${topic}</h2>
+            ${faqs.slice(0, 5).map(createCard).join('')}
+            <button class="view-all-by-topic" onclick="viewAllByTopic('${topic}')" style="${faqs.length > 5 ? 'display: inline-block;' : 'display: none;'}">View All for ${topic}</button>
           </div>
         `;
       }).join('');
+      
       document.getElementById('view-all-btn').style.display = 'none';
       document.getElementById('featured-faqs').style.display = 'none';
       document.getElementById('reset-btn').style.display = 'inline-block';
       document.getElementById('feedback-section').style.display = 'block';
+    }
+
+    function viewAllByTopic(topic) {
+      const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
+      const topicContainer = [...document.querySelectorAll('.faq-group')].find(group => group.querySelector('h2').innerText === topic);
+      topicContainer.innerHTML = `
+        <h2>${topic}</h2>
+        ${filteredFAQs.map(createCard).join('')}
+      `;
     }
 
     function resetSearch() {
