@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Frequently Asked Questions</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
+    body { 
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      margin: 20px;
+    }
     #search-box {
       width: 70%;
       max-width: 600px;
@@ -13,13 +17,14 @@
       margin: 20px auto;
       display: block;
       border-radius: 25px;
-      border: 1px solid #ddd;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid #0056b3;
+      box-shadow: 0 4px 12px rgba(0, 85, 179, 0.2);
       transition: box-shadow 0.2s;
     }
 
     #search-box:focus {
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 16px rgba(0, 85, 179, 0.4);
+      border-color: #ffd700;
       outline: none;
     }
 
@@ -27,22 +32,48 @@
       -webkit-appearance: searchfield-cancel-button;
     }
 
+    /* Topic Filter Dropdown Styling */
+    #topic-filter {
+      width: 25%;
+      max-width: 250px;
+      padding: 10px;
+      margin: 0 10px;
+      display: inline-block;
+      border-radius: 15px;
+      border: 1px solid #0056b3;
+      background-color: #f0f8ff;
+      color: #333;
+      box-shadow: 0 4px 8px rgba(0, 85, 179, 0.2);
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+
+    #topic-filter:hover {
+      background-color: #e6f0ff;
+    }
+
+    #topic-filter:focus {
+      box-shadow: 0 8px 16px rgba(0, 85, 179, 0.4);
+      outline: none;
+    }
+
     /* Card Styling */
     .faq-card {
       border: 1px solid #ddd;
       padding: 20px;
       margin-bottom: 15px;
-      border-radius: 10px;
-      background-color: #f9f9f9;
+      border-radius: 15px;
+      background-color: #ffffff;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
       cursor: pointer;
       position: relative;
     }
     
     .faq-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      background-color: #f0f8ff;
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 85, 179, 0.2);
     }
 
     .faq-problem {
@@ -57,6 +88,8 @@
       line-height: 1.5;
       display: none;
       margin-top: 15px;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
     }
 
     .expand-btn {
@@ -94,32 +127,41 @@
     /* Featured FAQs Styling */
     #featured-faqs {
       margin-bottom: 30px;
-        padding: 20px;
-        background-color: #fffbec; /* Light yellow background for emphasis */
-        border: 2px solid #ffd700; /* Gold border for standout effect */
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2); /* Subtle glow effect */
+      padding: 20px;
+      background-color: #fffcf0;
+      border: 3px solid #ffcc00;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
     }
 
     #featured-title {
       font-size: 26px;
-        font-weight: bold;
-        color: #0056b3; /* Darker shade of gold for title */
-        margin-bottom: 20px;
-        text-align: center; /* Center the title */
+      font-weight: bold;
+      color: #ff8c00;
+      margin-bottom: 20px;
+      text-align: center;
     }
 
     #featured-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* Centered Button Group */
+    .button-group {
+      text-align: center;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }
 
     /* View All FAQs Button */
     .view-all-btn {
-      display: block;
+      display: inline-block;
       padding: 10px 15px;
-      margin: 20px auto;
       background-color: #007bff;
       color: white;
       border: none;
@@ -127,15 +169,39 @@
       cursor: pointer;
       text-align: center;
       text-decoration: none;
-      width: fit-content;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, background-color 0.2s;
     }
 
     .view-all-btn:hover {
-      background-color: #0056b3;
+      background-color: #004999;
+      transform: scale(1.05);
     }
 
+    /* Reset Search Button */
+    .reset-btn {
+      display: inline-block;
+      padding: 10px 15px;
+      background: linear-gradient(45deg, #ff5f6d, #ff0000);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .reset-btn:hover {
+      background: linear-gradient(45deg, #d70000, #ff3333);
+      transform: scale(1.05);
+    }
   </style>
-  <!-- Include Fuse.js for fuzzy searching -->
+  <!-- Include Google Fonts and Fuse.js for fuzzy searching -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
@@ -143,6 +209,17 @@
   <h1 style="text-align: center;">Frequently Asked Questions</h1>
 
   <input type="search" id="search-box" placeholder="Search FAQs by keyword or tag">
+  <div class="button-group">
+    <select id="topic-filter">
+      <option value="">Filter by Topic</option>
+    </select>
+    <a href="javascript:void(0)" id="view-all-btn" class="view-all-btn" onclick="viewAllFAQs()">
+      <i class="fas fa-list"></i> View All FAQs
+    </a>
+    <a href="javascript:void(0)" id="reset-btn" class="reset-btn" onclick="resetSearch()" style="display: none;">
+      <i class="fas fa-times-circle"></i> Reset Search
+    </a>
+  </div>
 
   <div id="featured-faqs">
     <div id="featured-title">Featured FAQs</div>
@@ -150,8 +227,6 @@
   </div>
 
   <div id="faq-list"></div>
-
-  <a href="javascript:void(0)" id="view-all-btn" class="view-all-btn" onclick="viewAllFAQs()">View All FAQs</a>
 
   <div id="feedback-section">
     <p>Didn't find what you were looking for?</p>
@@ -198,7 +273,7 @@
                 featured: row.Featured === 'TRUE'  // Check if the FAQ is featured
               }));
 
-              // Display featured FAQs
+              populateTopicFilter(); // Populate the topic dropdown
               displayFeaturedFAQs();
 
               // Setup Fuse.js for searching
@@ -210,6 +285,33 @@
           });
         })
         .catch(error => console.error('Error fetching the sheet:', error));
+    }
+
+    function populateTopicFilter() {
+      const topicFilter = document.getElementById('topic-filter');
+      const uniqueTopics = [...new Set(allFAQs.map(faq => faq.topic).filter(topic => topic))];
+      uniqueTopics.forEach(topic => {
+        const option = document.createElement('option');
+        option.value = topic;
+        option.textContent = topic;
+        topicFilter.appendChild(option);
+      });
+
+      topicFilter.addEventListener('change', function() {
+        filterByTopic(this.value);
+      });
+    }
+
+    function filterByTopic(topic) {
+      if (topic) {
+        const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
+        displayFAQs(filteredFAQs);
+        document.getElementById('featured-faqs').style.display = 'none';
+        document.getElementById('view-all-btn').style.display = 'none';
+        document.getElementById('reset-btn').style.display = 'inline-block';
+      } else {
+        resetSearch();
+      }
     }
 
     function createCard(faq) {
@@ -234,11 +336,11 @@
       if (solutionDiv.style.display === 'none' || solutionDiv.style.display === '') {
         // Expand the solution
         solutionDiv.style.display = 'block';
-        expandBtn.textContent = 'Hide Solution';
+        if (expandBtn) expandBtn.textContent = 'Hide Solution';
       } else {
         // Collapse the solution
         solutionDiv.style.display = 'none';
-        expandBtn.textContent = 'View Solution';
+        if (expandBtn) expandBtn.textContent = 'View Solution';
       }
     }
 
@@ -246,6 +348,7 @@
       const faqList = document.getElementById('faq-list');
       faqList.innerHTML = faqs.map(createCard).join('');
       document.getElementById('feedback-section').style.display = 'block';
+      document.getElementById('reset-btn').style.display = 'inline-block';
     }
 
     function displayFeaturedFAQs() {
@@ -287,11 +390,9 @@
           displayFAQs(results);
           document.getElementById('featured-faqs').style.display = 'none'; // Hide featured FAQs when searching
           document.getElementById('view-all-btn').style.display = 'none';
+          document.getElementById('reset-btn').style.display = 'inline-block';
         } else {
-          document.getElementById('faq-list').innerHTML = '';
-          document.getElementById('feedback-section').style.display = 'none';
-          document.getElementById('featured-faqs').style.display = 'block'; // Show featured FAQs when no search
-          document.getElementById('view-all-btn').style.display = 'block';
+          resetSearch();
         }
       }, 300));
     }
@@ -313,7 +414,19 @@
         `;
       }).join('');
       document.getElementById('view-all-btn').style.display = 'none';
+      document.getElementById('featured-faqs').style.display = 'none';
+      document.getElementById('reset-btn').style.display = 'inline-block';
       document.getElementById('feedback-section').style.display = 'block';
+    }
+
+    function resetSearch() {
+      document.getElementById('faq-list').innerHTML = '';
+      document.getElementById('feedback-section').style.display = 'none';
+      document.getElementById('featured-faqs').style.display = 'block';
+      document.getElementById('view-all-btn').style.display = 'inline-block';
+      document.getElementById('reset-btn').style.display = 'none';
+      document.getElementById('topic-filter').value = '';
+      document.getElementById('search-box').value = '';
     }
 
     loadGoogleSheetsAPI();
