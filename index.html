@@ -64,7 +64,7 @@
       margin-bottom: 10px;
       border-radius: 10px;
       background-color: #ffffff;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
       transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
       cursor: pointer;
       position: relative;
@@ -72,9 +72,28 @@
     
     .faq-card:hover {
       background-color: #f0f8ff;
-      transform: translateY(-8px);
-      box-shadow: 0 12px 24px rgba(0, 85, 179, 0.2);
+      transform: translateY(-5px) scale(1.02); /* Add a slight scaling effect to make it pop */
+      box-shadow: 0 12px 24px rgba(0, 85, 179, 0.4); /* Increase shadow for more emphasis */
+      border-left: 5px solid #0056b3; /* Add a visible border accent */
     }
+
+    .faq-tag {
+      display: inline-block;
+      background-color: #e6f0ff;  /* Light blue background to differentiate */
+      color: #0056b3;  /* Match the header color */
+      padding: 5px 10px;
+      margin: 5px 5px 0 0;
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .faq-tag:hover {
+      background-color: #cce0ff;  /* Slightly darker on hover */
+      transform: translateY(-2px);
+    }
+
 
     .faq-problem {
       font-size: 18px;
@@ -207,12 +226,35 @@
       gap: 20px;
     }
 
-  /* One Column layout for FAQ filtered by topic*/
-  .faq-list-single-column {
-    display: block;
-    margin: 0 auto;
-  }
+    /* One Column layout for FAQ filtered by topic*/
+    .faq-list-single-column {
+      display: block;
+      margin: 0 auto;
+    }
   
+    /*Formatting for topic headers*/
+    .faq-group h2 {
+      font-size: 24px;  /* Increase font size for more prominence */
+      font-weight: bold;
+      color: #0056b3;  /* Darker color to stand out */
+      background-color: #f0f8ff;  /* Light background to differentiate */
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 85, 179, 0.2);
+    }
+
+  .subtopic-header {
+      font-size: 22px;  /* Slightly smaller than the main topic header */
+      font-weight: bold;
+      color: #0056b3;  /* Use a distinct color */
+      background-color: #f0f8ff;  /* Light background to differentiate */
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 85, 179, 0.2);
+    }
+
 
   </style>
   <!-- Include Google Fonts and Fuse.js for fuzzy searching -->
@@ -282,6 +324,7 @@
               allFAQs = results.data.filter(row => row.Approved === 'TRUE').map(row => ({
                 category: row.Category || '',
                 topic: row.Topic || '',
+                subTopic: row.SubTopic || 'General',  // Store the Sub_Topic value
                 tags: row.Tags || '',
                 problem: row.Problem_Question || '',
                 solutionHtml: row.solutionHtml || '',  // Use the solution HTML column directly
@@ -320,9 +363,71 @@
     function filterByTopic(topic) {
       if (topic) {
         const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
+
+        // Group by SubTopic
+        const groupedBySubTopic = filteredFAQs.reduce((group, faq) => {
+          const subTopic = faq.subTopic || 'General';  // Assign "General" if no sub-topic is provided
+          if (!group[subTopic]) group[subTopic] = [];
+          group[subTopic].push(faq);
+          return group;
+        }, {});
+
+        // Display FAQs grouped by SubTopic
         const faqList = document.getElementById('faq-list');
-        faqList.className = 'faq-list-single-column';  // Apply single-column class for filtering
-        displayFAQs(filteredFAQs);
+        faqList.className = Object.keys(groupedBySubTopic).length > 1 ? 'faq-list-container' : 'faq-list-single-column';  // Apply two-column or single-column class
+        faqList.innerHTML = Object.entries(groupedBySubTopic).map(([subTopic, faqs]) => {
+          return `
+            <div class="faq-group">
+            <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
+            ${filteredFAQs.map(createCard).join('')}
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('featured-faqs').style.display = 'none';
+        document.getElementById('view-all-btn').style.display = 'none';
+        document.getElementById('reset-btn').style.display = 'inline-block';
+      } else {
+        resetSearch();
+      }
+    }
+
+    function filterBySubTopic(subTopic) {
+      if (subTopic) {
+        const filteredFAQs = allFAQs.filter(faq => faq.subTopic === subTopic);
+
+        // Display filtered FAQs by SubTopic
+        const faqList = document.getElementById('faq-list');
+        faqList.className = 'faq-list-single-column'; // Keep a single-column layout for filtered results
+        faqList.innerHTML = `
+          <div class="faq-group">
+            <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
+            ${filteredFAQs.map(createCard).join('')}
+          </div>
+        `;
+
+        document.getElementById('featured-faqs').style.display = 'none';
+        document.getElementById('view-all-btn').style.display = 'none';
+        document.getElementById('reset-btn').style.display = 'inline-block';
+      } else {
+        resetSearch();
+      }
+    }
+
+    function filterByTopicAndSubTopic(topic, subTopic) {
+      if (topic && subTopic) {
+        const filteredFAQs = allFAQs.filter(faq => faq.topic === topic && faq.subTopic === subTopic);
+
+        // Display filtered FAQs under Topic > SubTopic
+        const faqList = document.getElementById('faq-list');
+        faqList.className = 'faq-list-single-column'; // Use single-column class for filtered results
+        faqList.innerHTML = `
+          <div class="faq-group">
+            <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
+            ${filteredFAQs.map(createCard).join('')}
+          </div>
+        `;
+
         document.getElementById('featured-faqs').style.display = 'none';
         document.getElementById('view-all-btn').style.display = 'none';
         document.getElementById('reset-btn').style.display = 'inline-block';
@@ -341,6 +446,10 @@
         <div class="faq-card" onclick="toggleSolution(this)">
           <div class="faq-problem">${faq.problem}</div>
           <div class="faq-solution">${faq.solutionHtml}</div>
+          <div class="faq-tags">
+            <span class="faq-tag" onclick="filterByTopic('${faq.topic}')"> ${faq.topic}</span>
+            ${faq.subTopic ? `<span class="faq-tag" onclick="filterByTopicAndSubTopic('${faq.topic}', '${faq.subTopic}')">> ${faq.subTopic}</span>` : ''}
+          </div>
         </div>
       `;
     }
@@ -362,8 +471,25 @@
     }
 
     function displayFAQs(faqs) {
+      // Group FAQs by topic
+      const groupedFAQs = faqs.reduce((group, faq) => {
+        if (!group[faq.topic]) group[faq.topic] = [];
+        group[faq.topic].push(faq);
+        return group;
+      }, {});
+
+      // Display grouped FAQs
       const faqList = document.getElementById('faq-list');
-      faqList.innerHTML = faqs.map(createCard).join('');
+      faqList.className = 'faq-list-single-column'; // Use single-column class for search results if desired
+      faqList.innerHTML = Object.entries(groupedFAQs).map(([topic, faqs]) => {
+        return `
+          <div class="faq-group">
+            <h2>${topic}</h2>
+            ${faqs.map(createCard).join('')}
+          </div>
+        `;
+      }).join('');
+
       document.getElementById('feedback-section').style.display = 'block';
       document.getElementById('reset-btn').style.display = 'inline-block';
     }
@@ -380,7 +506,7 @@
 
     function setupFuse() {
       const fuseOptions = {
-        keys: ['problem', 'solutionHtml', 'topic', 'tags'],
+        keys: ['problem', 'topic', 'subtopic', 'tags'],
         threshold: 0.5,
         includeScore: true
       };
