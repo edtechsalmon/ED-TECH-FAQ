@@ -59,12 +59,10 @@
 
     /* Card Styling */
     .faq-card {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
       border: 1px solid #ddd;
-      padding: 8px;
+      padding: 10px;
       margin-bottom: 10px;
+      margin-left: 20px;  /* Indent FAQ cards slightly to show they belong to the header */
       border-radius: 10px;
       background-color: #ffffff;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
@@ -72,6 +70,7 @@
       cursor: pointer;
       position: relative;
     }
+
     
     .faq-card:hover {
       background-color: #f0f8ff;
@@ -254,13 +253,21 @@
       font-weight: bold;
       color: #0056b3;  /* Darker color to stand out */
       background-color: #f0f8ff;  /* Light background to differentiate */
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 85, 179, 0.2);
-      border: 1px solid #ffcc00;  /* Added border to make topic headers stand out */
-
+      padding: 0px 5px 5px 10px;
+      margin-bottom: 5px;  /* Reduce bottom margin to bring FAQs closer */
+      border-radius: 0; /* Remove border radius for a flat connection to the FAQ group */
+      /* Remove border and shadow for a blended look */
     }
+
+    .faq-group {
+      padding: 0;  /* Remove padding to allow the header and cards to be flush */
+      background-color: #f0f8ff;  /* Light background to differentiate */
+      margin-bottom: 20px;  /* Space between topic groups */
+      border: 2px solid #0056b3;  /* Consistent border around the entire group */
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 85, 179, 0.2);
+    }
+
 
   .subtopic-header {
       font-size: 22px;  /* Slightly smaller than the main topic header */
