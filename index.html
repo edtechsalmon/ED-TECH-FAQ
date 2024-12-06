@@ -59,8 +59,11 @@
 
     /* Card Styling */
     .faq-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
       border: 1px solid #ddd;
-      padding: 10px;
+      padding: 8px;
       margin-bottom: 10px;
       border-radius: 10px;
       background-color: #ffffff;
@@ -82,9 +85,9 @@
       background-color: #e6f0ff;  /* Light blue background to differentiate */
       color: #0056b3;  /* Match the header color */
       padding: 5px 10px;
-      margin: 5px 5px 0 0;
+      margin: px 5px 0 0;
       border-radius: 12px;
-      font-size: 14px;
+      font-size: 12px;
       cursor: pointer;
       transition: background-color 0.2s, transform 0.2s;
     }
@@ -94,11 +97,23 @@
       transform: translateY(-2px);
     }
 
+    .faq-problem-tags {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap:0px;
+      padding-bottom: 8px;
+    }
 
     .faq-problem {
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
+      flex: 1; /* Allow it to grow and take available space */
+      border-bottom: 1px solid #ddd; /* Add a line to visually separate the problem from the tags */
+      padding-bottom: 5px; /* Add some padding to keep the line visually separated from the tags */
+      margin-bottom: 5px; /* Add some margin to ensure spacing between problem and tags */
+    }
+
+    .faq-tags {
+      margin-top: 3px; /* Space between the problem and tags */
     }
 
     .faq-solution {
@@ -219,11 +234,12 @@
       transform: scale(1.05);
     }
 
-    /* Two Column Layout for FAQ Groups */
+    /* Expand Column Layout for FAQ Groups */
     .faq-list-container {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
       gap: 20px;
+      align-items: stretch; /* Makes all cards have equal height */
     }
 
     /* One Column layout for FAQ filtered by topic*/
@@ -242,6 +258,8 @@
       margin-bottom: 15px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 85, 179, 0.2);
+      border: 1px solid #ffcc00;  /* Added border to make topic headers stand out */
+
     }
 
   .subtopic-header {
@@ -255,7 +273,31 @@
       box-shadow: 0 2px 4px rgba(0, 85, 179, 0.2);
     }
 
+  @media (max-width:800px) {
+    .faq-problem-tags {
+      flex-direction: flex; /* Stack the elements vertically */
+      align-items: flex-start; /* Align items to the left */
+    }
 
+    .faq-tags {
+      margin-top: 5px; /* Add some spacing when they move below */
+    }
+    
+    .faq-list-container {
+     grid-template-columns: 1fr; /* Switch to a single-column layout */
+     gap: 20px; /* Keep the spacing between items */
+    }
+
+    .faq-problem-tags {
+      flex-direction: column; /* Stack the elements vertically */
+      align-items: flex-start; /* Align items to the left */
+    }
+
+    .faq-tags {
+      margin-top: 5px; /* Add some spacing when they move below */
+    }
+  }
+  
   </style>
   <!-- Include Google Fonts and Fuse.js for fuzzy searching -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -444,15 +486,18 @@
 
       return `
         <div class="faq-card" onclick="toggleSolution(this)">
-          <div class="faq-problem">${faq.problem}</div>
-          <div class="faq-solution">${faq.solutionHtml}</div>
-          <div class="faq-tags">
-            <span class="faq-tag" onclick="filterByTopic('${faq.topic}')"> ${faq.topic}</span>
-            ${faq.subTopic ? `<span class="faq-tag" onclick="filterByTopicAndSubTopic('${faq.topic}', '${faq.subTopic}')">> ${faq.subTopic}</span>` : ''}
+          <div class="faq-problem-tags">
+            <div class="faq-problem">${faq.problem}</div>
+            <div class="faq-tags">
+              <span class="faq-tag" onclick="event.stopPropagation(); filterByTopic('${faq.topic}')">${faq.topic}</span>
+              ${faq.subTopic ? `<span class="faq-tag" onclick="event.stopPropagation(); filterByTopicAndSubTopic('${faq.topic}', '${faq.subTopic}')">${faq.subTopic}</span>` : ''}
+            </div>
           </div>
+          <div class="faq-solution">${faq.solutionHtml}</div>
         </div>
       `;
     }
+
 
     // Toggle the expansion of the solution when the button is clicked or card is clicked
     function toggleSolution(card) {
@@ -547,9 +592,13 @@
         return group;
       }, {});
 
+      // Sort topics alphabetically
+      const sortedTopics = Object.keys(groupedFAQs).sort();
+
       const faqList = document.getElementById('faq-list');
       faqList.className = 'faq-list-container';  // Apply two-column class
-      faqList.innerHTML = Object.entries(groupedFAQs).map(([topic, faqs]) => {
+      faqList.innerHTML = sortedTopics.map(topic => {
+      const faqs = groupedFAQs[topic];
         return `
           <div class="faq-group">
             <h2>${topic}</h2>
