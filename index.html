@@ -92,7 +92,6 @@
         cursor: pointer;
         position: relative;
       }
-
       
       .faq-card:hover {
         background-color: #f0f8ff;
@@ -107,7 +106,6 @@
         align-items: center;
         width: 100%;
       }
-
 
       .faq-tag {
         display: inline-block;
@@ -159,6 +157,27 @@
         display: flex;
         justify-content: flex-end;
         gap: 10px; /* Space between buttons */
+      }
+
+      .faq-solution-content {
+        display: flex;
+        gap: 15px; /* Space between video and text */
+      }
+
+      .faq-video {
+        flex: 0 0 320px; /* Fixed width for the video */
+        height: 180px; /* Fixed height for the video */
+      }
+
+      .faq-video iframe {
+        width: 100%;
+        height: 100%;
+        border-radius: 5px; /* Rounded corners for the video */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+      }
+
+      .faq-text {
+        flex: 1; /* Allow the text to take up remaining space */
       }
 
       .faq-button {
@@ -428,41 +447,43 @@
         google.charts.setOnLoadCallback(fetchFAQData);
       }
 
-      function fetchFAQData() {
-        const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=568968512&single=true&output=csv';
+    function fetchFAQData() {
+      const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=568968512&single=true&output=csv';
 
-        // Fetch the CSV and parse it with PapaParse
-        fetch(spreadsheetURL)
-          .then(response => response.text())
-          .then(csvText => {
-            Papa.parse(csvText, {
-              header: true,  // Use the first row as the header
-              skipEmptyLines: true,  // Skip empty lines
-              complete: function(results) {
-                // Store the parsed data in the allFAQs array
-                allFAQs = results.data.filter(row => row.Approved === 'TRUE').map(row => ({
-                  category: row.Category || '',
-                  topic: row.Topic || '',
-                  subTopic: row.SubTopic || 'General',  // Store the Sub_Topic value
-                  tags: row.Tags || '',
-                  problem: row.Problem_Question || '',
-                  solutionHtml: row.solutionHtml || '',  // Use the solution HTML column directly
-                  featured: row.Featured === 'TRUE'  // Check if the FAQ is featured
-                }));
+      // Fetch the CSV and parse it with PapaParse
+      fetch(spreadsheetURL)
+        .then(response => response.text())
+        .then(csvText => {
+          Papa.parse(csvText, {
+            header: true,  // Use the first row as the header
+            skipEmptyLines: true,  // Skip empty lines
+            complete: function(results) {
+              // Store the parsed data in the allFAQs array
+              allFAQs = results.data.filter(row => row.Approved === 'TRUE').map(row => ({
+                category: row.Category || '',
+                topic: row.Topic || '',
+                subTopic: row.SubTopic || 'General',
+                tags: row.Tags || '',
+                problem: row.Problem_Question || '',
+                solutionHtml: row.solutionHtml || '',
+                videoUrl: row.VideoURL || '',  // Include the VideoURL column
+                featured: row.Featured === 'TRUE'
+              }));
 
-                populateTopicFilter(); // Populate the topic dropdown
-                displayFeaturedFAQs();
+              populateTopicFilter(); // Populate the topic dropdown
+              displayFeaturedFAQs();
 
-                // Setup Fuse.js for searching
-                setupFuse();  // Initialize Fuse.js with the FAQ data
-              },
-              error: function(error) {
-                console.error('Error parsing CSV:', error);
-              }
-            });
-          })
-          .catch(error => console.error('Error fetching the sheet:', error));
-      }
+              // Setup Fuse.js for searching
+              setupFuse();
+            },
+            error: function(error) {
+              console.error('Error parsing CSV:', error);
+            }
+          });
+        })
+        .catch(error => console.error('Error fetching the sheet:', error));
+    }
+
 
       function populateTopicFilter() {
         const topicFilter = document.getElementById('topic-filter');
@@ -556,13 +577,20 @@
       }
 
       function createCard(faq) {
-        if (!faq.problem || !faq.solutionHtml) return ''; 
+        if (!faq.problem || !faq.solutionHtml) {
+          return ''; // Skip rendering this card if problem or solution is missing
+        }
+
+        const videoEmbed = faq.videoUrl
+          ? `<div class="faq-video"><iframe src="${faq.videoUrl.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen></iframe></div>`
+          : '';
 
         return `
           <div class="faq-card" onclick="toggleSolution(this)">
             <div class="faq-problem-tags">
               <div class="faq-header">
                 <div class="faq-problem">${faq.problem}</div>
+                <button class="collapse-btn" onclick="collapseSolution(event, this)" style="display: none;">Collapse Solution</button>
               </div>
               <div class="faq-tags">
                 <span class="faq-tag" onclick="event.stopPropagation(); filterByTopic('${faq.topic}')">${faq.topic}</span>
@@ -570,15 +598,16 @@
               </div>
             </div>
             <div class="faq-solution">
-              ${faq.solutionHtml}
-              <div style="margin-top: 10px;">
-                <button class="copy-btn" onclick="copySolutionToClipboard(event, this)">Copy Solution</button>
-                <button class="collapse-btn" onclick="collapseSolution(event, this)">Collapse Solution</button>
+              <div class="faq-solution-content">
+                ${videoEmbed}
+                <div class="faq-text">${faq.solutionHtml}</div>
               </div>
+              <button class="copy-btn" onclick="copySolutionToClipboard(event, this)">Copy Solution</button>
             </div>
           </div>
         `;
       }
+
 
       function toggleSolution(card) {
         const solutionDiv = card.querySelector('.faq-solution');
