@@ -333,6 +333,8 @@
       .faq-list-single-column {
         display: block;
         margin: 0 auto;
+        max-width: 800px; /* Set maximum width for one-column layout */
+        padding: 0 20px; /* Add some padding for a clean look */
       }
     
       /*Formatting for topic headers*/
@@ -377,10 +379,9 @@
 
     @media (max-width:800px) {
       .faq-list-container {
-      grid-template-columns: 1fr; /* Switch to a single-column layout */
-      gap: 20px; /* Keep the spacing between items */
-      }
-
+        grid-template-columns: 1fr; /* Switch to a single-column layout */
+        gap: 20px; /* Keep the spacing between items */
+        }
       .faq-problem-tags {
         flex-direction: column; /* Stack the elements vertically */
         align-items: flex-start; /* Align items to the left */
