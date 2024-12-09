@@ -79,6 +79,14 @@
       border-left: 5px solid #0056b3; /* Add a visible border accent */
     }
 
+    .faq-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+
     .faq-tag {
       display: inline-block;
       background-color: #e6f0ff;  /* Light blue background to differentiate */
@@ -135,6 +143,24 @@
       right: 20px;
       top: 20px;
     }
+
+    .collapse-btn {
+      padding: 5px 10px;
+      background-color: #ff5f6d; /* A vibrant red color for contrast */
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .collapse-btn:hover {
+      background-color: #e04444; /* Slightly darker on hover */
+      transform: scale(1.05); /* Add slight scaling effect on hover */
+    }
+
+
 
     /* Feedback Section Styling */
     #feedback-section {
@@ -494,7 +520,10 @@
       return `
         <div class="faq-card" onclick="toggleSolution(this)">
           <div class="faq-problem-tags">
-            <div class="faq-problem">${faq.problem}</div>
+            <div class="faq-header">
+              <div class="faq-problem">${faq.problem}</div>
+              <button class="collapse-btn" onclick="collapseSolution(event, this)" style="display: none;">Collapse Solution</button>
+            </div>
             <div class="faq-tags">
               <span class="faq-tag" onclick="event.stopPropagation(); filterByTopic('${faq.topic}')">${faq.topic}</span>
               ${faq.subTopic ? `<span class="faq-tag" onclick="event.stopPropagation(); filterByTopicAndSubTopic('${faq.topic}', '${faq.subTopic}')">${faq.subTopic}</span>` : ''}
@@ -505,21 +534,26 @@
       `;
     }
 
-
-    // Toggle the expansion of the solution when the button is clicked or card is clicked
     function toggleSolution(card) {
       const solutionDiv = card.querySelector('.faq-solution');
-      const expandBtn = card.querySelector('.expand-btn');
+      const collapseBtn = card.querySelector('.collapse-btn'); // Ensure this button is added in your HTML.
 
+      // If the solution is hidden, expand it
       if (solutionDiv.style.display === 'none' || solutionDiv.style.display === '') {
-        // Expand the solution
-        solutionDiv.style.display = 'block';
-        if (expandBtn) expandBtn.textContent = 'Hide Solution';
-      } else {
-        // Collapse the solution
-        solutionDiv.style.display = 'none';
-        if (expandBtn) expandBtn.textContent = 'View Solution';
+        solutionDiv.style.display = 'block'; // Show the solution
+        if (collapseBtn) collapseBtn.style.display = 'inline-block'; // Show the Collapse button
       }
+    }
+
+    function collapseSolution(event, button) {
+      event.stopPropagation(); // Prevent the card click event
+      const card = button.closest('.faq-card');
+      const solutionDiv = card.querySelector('.faq-solution');
+      const collapseBtn = card.querySelector('.collapse-btn');
+
+      // Collapse the solution
+      solutionDiv.style.display = 'none';
+      collapseBtn.style.display = 'none'; // Hide the Collapse button
     }
 
     function displayFAQs(faqs) {
