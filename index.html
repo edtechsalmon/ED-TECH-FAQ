@@ -1,680 +1,765 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Frequently Asked Questions</title>
-  <style>
-    body { 
-      font-family: 'Roboto', sans-serif;
-      background: transparent;
-      margin: 20px;
-    }
-    #search-box {
-      width: 70%;
-      max-width: 600px;
-      padding: 15px;
-      margin: 20px auto;
-      display: block;
-      border-radius: 25px;
-      border: 1px solid #0056b3;
-      box-shadow: 0 4px 12px rgba(0, 85, 179, 0.2);
-      transition: box-shadow 0.2s;
-    }
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frequently Asked Questions</title>
+    <style>
+      body { 
+        font-family: 'Roboto', sans-serif;
+        background: transparent;
+        margin: 20px;
+      }
+      
+      #notification-container {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        display: none;
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        font-size: 14px;
+        animation: fade-in-out 2.5s ease-in-out;
+      }
 
-    #search-box:focus {
-      box-shadow: 0 8px 16px rgba(0, 85, 179, 0.4);
-      border-color: #ffd700;
-      outline: none;
-    }
+      @keyframes fade-in-out {
+        0% { opacity: 0; transform: translateY(-10px); }
+        10%, 90% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-10px); }
+      }
 
-    #search-box::-webkit-search-cancel-button {
-      -webkit-appearance: searchfield-cancel-button;
-    }
+      #search-box {
+        width: 70%;
+        max-width: 600px;
+        padding: 15px;
+        margin: 20px auto;
+        display: block;
+        border-radius: 25px;
+        border: 1px solid #0056b3;
+        box-shadow: 0 4px 12px rgba(0, 85, 179, 0.2);
+        transition: box-shadow 0.2s;
+      }
 
-    /* Topic Filter Dropdown Styling */
-    #topic-filter {
-      width: 25%;
-      max-width: 250px;
-      padding: 10px;
-      margin: 0 10px;
-      display: inline-block;
-      border-radius: 15px;
-      border: 1px solid #0056b3;
-      background-color: #f0f8ff;
-      color: #333;
-      box-shadow: 0 4px 8px rgba(0, 85, 179, 0.2);
-      cursor: pointer;
-      transition: box-shadow 0.2s;
-    }
+      #search-box:focus {
+        box-shadow: 0 8px 16px rgba(0, 85, 179, 0.4);
+        border-color: #ffd700;
+        outline: none;
+      }
 
-    #topic-filter:hover {
-      background-color: #e6f0ff;
-    }
+      #search-box::-webkit-search-cancel-button {
+        -webkit-appearance: searchfield-cancel-button;
+      }
 
-    #topic-filter:focus {
-      box-shadow: 0 8px 16px rgba(0, 85, 179, 0.4);
-      outline: none;
-    }
+      /* Topic Filter Dropdown Styling */
+      #topic-filter {
+        width: 25%;
+        max-width: 250px;
+        padding: 10px;
+        margin: 0 10px;
+        display: inline-block;
+        border-radius: 15px;
+        border: 1px solid #0056b3;
+        background-color: #f0f8ff;
+        color: #333;
+        box-shadow: 0 4px 8px rgba(0, 85, 179, 0.2);
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+      }
 
-    /* Card Styling */
-    .faq-card {
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin-bottom: 10px;
-      margin-left: 20px;  /* Indent FAQ cards slightly to show they belong to the header */
-      border-radius: 10px;
-      background-color: #ffffff;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
-      cursor: pointer;
-      position: relative;
-    }
+      #topic-filter:hover {
+        background-color: #e6f0ff;
+      }
 
+      #topic-filter:focus {
+        box-shadow: 0 8px 16px rgba(0, 85, 179, 0.4);
+        outline: none;
+      }
+
+      /* Card Styling */
+      .faq-card {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-bottom: 10px;
+        margin-left: 20px;  /* Indent FAQ cards slightly to show they belong to the header */
+        border-radius: 10px;
+        background-color: #ffffff;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+        cursor: pointer;
+        position: relative;
+      }
+
+      
+      .faq-card:hover {
+        background-color: #f0f8ff;
+        transform: translateY(-5px) scale(1.02); /* Add a slight scaling effect to make it pop */
+        box-shadow: 0 12px 24px rgba(0, 85, 179, 0.4); /* Increase shadow for more emphasis */
+        border-left: 5px solid #0056b3; /* Add a visible border accent */
+      }
+
+      .faq-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      }
+
+
+      .faq-tag {
+        display: inline-block;
+        background-color: #e6f0ff;  /* Light blue background to differentiate */
+        color: #0056b3;  /* Match the header color */
+        padding: 5px 10px;
+        margin: px 5px 0 0;
+        border-radius: 12px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.2s;
+      }
+
+      .faq-tag:hover {
+        background-color: #cce0ff;  /* Slightly darker on hover */
+        transform: translateY(-2px);
+      }
+
+      .faq-problem-tags {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap:0px;
+        padding-bottom: 8px;
+      }
+
+      .faq-problem {
+        flex: 1; /* Allow it to grow and take available space */
+        border-bottom: 1px solid #ddd; /* Add a line to visually separate the problem from the tags */
+        padding-bottom: 5px; /* Add some padding to keep the line visually separated from the tags */
+        margin-bottom: 5px; /* Add some margin to ensure spacing between problem and tags */
+      }
+
+      .faq-tags {
+        margin-top: 3px; /* Space between the problem and tags */
+      }
+
+      .faq-solution {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.5;
+        display: none;
+        margin-top: 15px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+      }
+
+      .faq-solution > div {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px; /* Space between buttons */
+      }
+
+      .faq-button {
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: bold;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.2s;
+        border: none;
+        display: inline-block;
+        height: 36px; /* Ensures all buttons have the same height */
+      }
+
+      .expand-btn {
+        color: #007bff;
+        cursor: pointer;
+        font-weight: bold;
+        display: inline-block;
+        margin-top: 10px;
+        position: absolute;
+        right: 20px;
+        top: 20px;
+      }
+
+      .copy-btn {
+        background-color: #4caf50; /* Green color */
+        color: white;
+      }
+
+      .copy-btn:hover {
+        background-color: #45a049;
+        transform: scale(1.05);
+      }
+
+      .collapse-btn {
+        background-color: #ff5f6d; /* Red color */
+        color: white;
+      }
+
+      .collapse-btn:hover {
+        background-color: #e04444;
+        transform: scale(1.05);
+      }
+
+      /* Feedback Section Styling */
+      #feedback-section {
+        display: none;
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      #feedback-section p {
+        display: inline;
+        margin-right: 10px;
+      }
+
+      .feedback-btn {
+        padding: 10px;
+        background-color: orange;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      /* Featured FAQs Styling */
+      #featured-faqs {
+        margin-bottom: 30px;
+        padding: 20px;
+        background-color: #fffcf0;
+        border: 3px solid #ffcc00;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
+      }
+
+      #featured-title {
+        font-size: 26px;
+        font-weight: bold;
+        color: #ff8c00;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      #featured-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 20px;
+      }
+
+      /* Centered Button Group */
+      .button-group {
+        text-align: center;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+
+      /* View All FAQs Button */
+      .view-all-btn {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, background-color 0.2s;
+      }
+
+      .view-all-btn:hover {
+        background-color: #004999;
+        transform: scale(1.05);
+      }
+
+      /* Reset Search Button */
+      .reset-btn {
+        display: inline-block;
+        padding: 10px 15px;
+        background: linear-gradient(45deg, #ff5f6d, #ff0000);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, background-color 0.2s;
+      }
+
+      .reset-btn:hover {
+        background: linear-gradient(45deg, #d70000, #ff3333);
+        transform: scale(1.05);
+      }
+
+      /* Expand Column Layout for FAQ Groups */
+      .faq-list-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 20px;
+        align-items: stretch; /* Makes all cards have equal height */
+      }
+
+      /* One Column layout for FAQ filtered by topic*/
+      .faq-list-single-column {
+        display: block;
+        margin: 0 auto;
+      }
     
-    .faq-card:hover {
-      background-color: #f0f8ff;
-      transform: translateY(-5px) scale(1.02); /* Add a slight scaling effect to make it pop */
-      box-shadow: 0 12px 24px rgba(0, 85, 179, 0.4); /* Increase shadow for more emphasis */
-      border-left: 5px solid #0056b3; /* Add a visible border accent */
-    }
+      /*Formatting for topic headers*/
+      .faq-group h2 {
+        font-size: 24px;  /* Increase font size for more prominence */
+        font-weight: bold;
+        color: #0056b3;  /* Darker color to stand out */
+        background-color: #f0f8ff;  /* Light background to differentiate */
+        padding: 0px 5px 5px 10px;
+        margin-bottom: 5px;  /* Reduce bottom margin to bring FAQs closer */
+        border-radius: 0; /* Remove border radius for a flat connection to the FAQ group */
+        /* Remove border and shadow for a blended look */
+      }
 
-    .faq-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-    }
-
-
-    .faq-tag {
-      display: inline-block;
-      background-color: #e6f0ff;  /* Light blue background to differentiate */
-      color: #0056b3;  /* Match the header color */
-      padding: 5px 10px;
-      margin: px 5px 0 0;
-      border-radius: 12px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s, transform 0.2s;
-    }
-
-    .faq-tag:hover {
-      background-color: #cce0ff;  /* Slightly darker on hover */
-      transform: translateY(-2px);
-    }
-
-    .faq-problem-tags {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap:0px;
-      padding-bottom: 8px;
-    }
-
-    .faq-problem {
-      flex: 1; /* Allow it to grow and take available space */
-      border-bottom: 1px solid #ddd; /* Add a line to visually separate the problem from the tags */
-      padding-bottom: 5px; /* Add some padding to keep the line visually separated from the tags */
-      margin-bottom: 5px; /* Add some margin to ensure spacing between problem and tags */
-    }
-
-    .faq-tags {
-      margin-top: 3px; /* Space between the problem and tags */
-    }
-
-    .faq-solution {
-      font-size: 16px;
-      color: #555;
-      line-height: 1.5;
-      display: none;
-      margin-top: 15px;
-      border-top: 1px solid #ddd;
-      padding-top: 10px;
-    }
-
-    .expand-btn {
-      color: #007bff;
-      cursor: pointer;
-      font-weight: bold;
-      display: inline-block;
-      margin-top: 10px;
-      position: absolute;
-      right: 20px;
-      top: 20px;
-    }
-
-    .collapse-btn {
-      padding: 5px 10px;
-      background-color: #ff5f6d; /* A vibrant red color for contrast */
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s, transform 0.2s;
-    }
-
-    .collapse-btn:hover {
-      background-color: #e04444; /* Slightly darker on hover */
-      transform: scale(1.05); /* Add slight scaling effect on hover */
-    }
+      .faq-group {
+        padding: 0;  /* Remove padding to allow the header and cards to be flush */
+        background-color: #f0f8ff;  /* Light background to differentiate */
+        margin-bottom: 20px;  /* Space between topic groups */
+        border: 2px solid #0056b3;  /* Consistent border around the entire group */
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 85, 179, 0.2);
+      }
 
 
+    .subtopic-header {
+        font-size: 22px;  /* Slightly smaller than the main topic header */
+        font-weight: bold;
+        color: #0056b3;  /* Use a distinct color */
+        background-color: #f0f8ff;  /* Light background to differentiate */
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 85, 179, 0.2);
+      }
 
-    /* Feedback Section Styling */
-    #feedback-section {
-      display: none;
-      margin-top: 20px;
-      text-align: center;
-    }
+    @media (max-width:800px) {
+      .faq-problem-tags {
+        flex-direction: flex; /* Stack the elements vertically */
+        align-items: flex-start; /* Align items to the left */
+      }
 
-    #feedback-section p {
-      display: inline;
-      margin-right: 10px;
-    }
+      .faq-tags {
+        margin-top: 5px; /* Add some spacing when they move below */
+      }
+      
+      .faq-list-container {
+      grid-template-columns: 1fr; /* Switch to a single-column layout */
+      gap: 20px; /* Keep the spacing between items */
+      }
 
-    .feedback-btn {
-      padding: 10px;
-      background-color: orange;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+      .faq-problem-tags {
+        flex-direction: column; /* Stack the elements vertically */
+        align-items: flex-start; /* Align items to the left */
+      }
 
-    /* Featured FAQs Styling */
-    #featured-faqs {
-      margin-bottom: 30px;
-      padding: 20px;
-      background-color: #fffcf0;
-      border: 3px solid #ffcc00;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(255, 215, 0, 0.2);
-    }
-
-    #featured-title {
-      font-size: 26px;
-      font-weight: bold;
-      color: #ff8c00;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    #featured-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-      gap: 20px;
-    }
-
-    /* Centered Button Group */
-    .button-group {
-      text-align: center;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* View All FAQs Button */
-    .view-all-btn {
-      display: inline-block;
-      padding: 10px 15px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      font-weight: bold;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s, background-color 0.2s;
-    }
-
-    .view-all-btn:hover {
-      background-color: #004999;
-      transform: scale(1.05);
-    }
-
-    /* Reset Search Button */
-    .reset-btn {
-      display: inline-block;
-      padding: 10px 15px;
-      background: linear-gradient(45deg, #ff5f6d, #ff0000);
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      font-weight: bold;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s, background-color 0.2s;
-    }
-
-    .reset-btn:hover {
-      background: linear-gradient(45deg, #d70000, #ff3333);
-      transform: scale(1.05);
-    }
-
-    /* Expand Column Layout for FAQ Groups */
-    .faq-list-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-      gap: 20px;
-      align-items: stretch; /* Makes all cards have equal height */
-    }
-
-    /* One Column layout for FAQ filtered by topic*/
-    .faq-list-single-column {
-      display: block;
-      margin: 0 auto;
-    }
-  
-    /*Formatting for topic headers*/
-    .faq-group h2 {
-      font-size: 24px;  /* Increase font size for more prominence */
-      font-weight: bold;
-      color: #0056b3;  /* Darker color to stand out */
-      background-color: #f0f8ff;  /* Light background to differentiate */
-      padding: 0px 5px 5px 10px;
-      margin-bottom: 5px;  /* Reduce bottom margin to bring FAQs closer */
-      border-radius: 0; /* Remove border radius for a flat connection to the FAQ group */
-      /* Remove border and shadow for a blended look */
-    }
-
-    .faq-group {
-      padding: 0;  /* Remove padding to allow the header and cards to be flush */
-      background-color: #f0f8ff;  /* Light background to differentiate */
-      margin-bottom: 20px;  /* Space between topic groups */
-      border: 2px solid #0056b3;  /* Consistent border around the entire group */
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 85, 179, 0.2);
-    }
-
-
-  .subtopic-header {
-      font-size: 22px;  /* Slightly smaller than the main topic header */
-      font-weight: bold;
-      color: #0056b3;  /* Use a distinct color */
-      background-color: #f0f8ff;  /* Light background to differentiate */
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 85, 179, 0.2);
-    }
-
-  @media (max-width:800px) {
-    .faq-problem-tags {
-      flex-direction: flex; /* Stack the elements vertically */
-      align-items: flex-start; /* Align items to the left */
-    }
-
-    .faq-tags {
-      margin-top: 5px; /* Add some spacing when they move below */
+      .faq-tags {
+        margin-top: 5px; /* Add some spacing when they move below */
+      }
     }
     
-    .faq-list-container {
-     grid-template-columns: 1fr; /* Switch to a single-column layout */
-     gap: 20px; /* Keep the spacing between items */
-    }
+    </style>
+    <!-- Include Google Fonts and Fuse.js for fuzzy searching -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  </head>
+  <body>
+    <div id="notification-container" style="position: fixed; top: 10px; right: 10px; z-index: 1000; display: none; background-color: #4caf50; color: white; padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); font-size: 14px;"></div>
 
-    .faq-problem-tags {
-      flex-direction: column; /* Stack the elements vertically */
-      align-items: flex-start; /* Align items to the left */
-    }
+    <h1 style="text-align: center;">Frequently Asked Questions</h1>
 
-    .faq-tags {
-      margin-top: 5px; /* Add some spacing when they move below */
-    }
-  }
-  
-  </style>
-  <!-- Include Google Fonts and Fuse.js for fuzzy searching -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.5.3"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-</head>
-<body>
-  <h1 style="text-align: center;">Frequently Asked Questions</h1>
+    <input type="search" id="search-box" placeholder="Search FAQs by keyword or tag">
+    <div class="button-group">
+      <select id="topic-filter">
+        <option value="">Filter by Topic</option>
+      </select>
+      <a href="javascript:void(0)" id="view-all-btn" class="view-all-btn" onclick="viewAllFAQs()">
+        <i class="fas fa-list"></i> View All FAQs
+      </a>
+      <a href="javascript:void(0)" id="reset-btn" class="reset-btn" onclick="resetSearch()" style="display: none;">
+        <i class="fas fa-times-circle"></i> Reset Search
+      </a>
+    </div>
 
-  <input type="search" id="search-box" placeholder="Search FAQs by keyword or tag">
-  <div class="button-group">
-    <select id="topic-filter">
-      <option value="">Filter by Topic</option>
-    </select>
-    <a href="javascript:void(0)" id="view-all-btn" class="view-all-btn" onclick="viewAllFAQs()">
-      <i class="fas fa-list"></i> View All FAQs
-    </a>
-    <a href="javascript:void(0)" id="reset-btn" class="reset-btn" onclick="resetSearch()" style="display: none;">
-      <i class="fas fa-times-circle"></i> Reset Search
-    </a>
-  </div>
+    <div id="featured-faqs">
+      <div id="featured-title">Featured FAQs</div>
+      <div id="featured-list"></div>
+    </div>
 
-  <div id="featured-faqs">
-    <div id="featured-title">Featured FAQs</div>
-    <div id="featured-list"></div>
-  </div>
+    <div id="faq-list" class="faq-list-container"></div>
 
-  <div id="faq-list" class="faq-list-container"></div>
+    <div id="feedback-section">
+      <p>Didn't find what you were looking for?</p>
+      <a href="https://forms.gle/yVFaN8RYq2uzLkCMA" target="_blank">
+        <button class="feedback-btn">Submit FAQ Request</button>
+      </a>
+    </div>
 
-  <div id="feedback-section">
-    <p>Didn't find what you were looking for?</p>
-    <a href="https://forms.gle/yVFaN8RYq2uzLkCMA" target="_blank">
-      <button class="feedback-btn">Submit FAQ Request</button>
-    </a>
-  </div>
+    <script type="text/javascript">
+      let allFAQs = []; // Global variable to store all FAQs
+      let fuse;  // Variable to store Fuse.js instance
+      let lastSearchQuery = ''; // Track the last search query
 
-  <script type="text/javascript">
-    let allFAQs = []; // Global variable to store all FAQs
-    let fuse;  // Variable to store Fuse.js instance
-    let lastSearchQuery = ''; // Track the last search query
-
-    function loadGoogleSheetsAPI() {
-      var script = document.createElement('script');
-      script.src = 'https://www.gstatic.com/charts/loader.js';
-      script.onload = initGoogleSheets;
-      document.head.appendChild(script);
-    }
-
-    function initGoogleSheets() {
-      google.charts.load('current', { packages: ['corechart'] });
-      google.charts.setOnLoadCallback(fetchFAQData);
-    }
-
-    function fetchFAQData() {
-      const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=568968512&single=true&output=csv';
-
-      // Fetch the CSV and parse it with PapaParse
-      fetch(spreadsheetURL)
-        .then(response => response.text())
-        .then(csvText => {
-          Papa.parse(csvText, {
-            header: true,  // Use the first row as the header
-            skipEmptyLines: true,  // Skip empty lines
-            complete: function(results) {
-              // Store the parsed data in the allFAQs array
-              allFAQs = results.data.filter(row => row.Approved === 'TRUE').map(row => ({
-                category: row.Category || '',
-                topic: row.Topic || '',
-                subTopic: row.SubTopic || 'General',  // Store the Sub_Topic value
-                tags: row.Tags || '',
-                problem: row.Problem_Question || '',
-                solutionHtml: row.solutionHtml || '',  // Use the solution HTML column directly
-                featured: row.Featured === 'TRUE'  // Check if the FAQ is featured
-              }));
-
-              populateTopicFilter(); // Populate the topic dropdown
-              displayFeaturedFAQs();
-
-              // Setup Fuse.js for searching
-              setupFuse();  // Initialize Fuse.js with the FAQ data
-            },
-            error: function(error) {
-              console.error('Error parsing CSV:', error);
-            }
-          });
-        })
-        .catch(error => console.error('Error fetching the sheet:', error));
-    }
-
-    function populateTopicFilter() {
-      const topicFilter = document.getElementById('topic-filter');
-      const uniqueTopics = [...new Set(allFAQs.map(faq => faq.topic).filter(topic => topic))];
-      uniqueTopics.forEach(topic => {
-        const option = document.createElement('option');
-        option.value = topic;
-        option.textContent = topic;
-        topicFilter.appendChild(option);
-      });
-
-      topicFilter.addEventListener('change', function() {
-        filterByTopic(this.value);
-      });
-    }
-
-    function filterByTopic(topic) {
-      if (topic) {
-        const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
-
-        // Group by SubTopic
-        const groupedBySubTopic = filteredFAQs.reduce((group, faq) => {
-          const subTopic = faq.subTopic || 'General';  // Assign "General" if no sub-topic is provided
-          if (!group[subTopic]) group[subTopic] = [];
-          group[subTopic].push(faq);
-          return group;
-        }, {});
-
-        // Display FAQs grouped by SubTopic
-        const faqList = document.getElementById('faq-list');
-        faqList.className = Object.keys(groupedBySubTopic).length > 1 ? 'faq-list-container' : 'faq-list-single-column';  // Apply two-column or single-column class
-        faqList.innerHTML = Object.entries(groupedBySubTopic).map(([subTopic, faqs]) => {
-          return `
-            <div class="faq-group">
-            <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
-            ${filteredFAQs.map(createCard).join('')}
-            </div>
-          `;
-        }).join('');
-
-        document.getElementById('featured-faqs').style.display = 'none';
-        document.getElementById('view-all-btn').style.display = 'none';
-        document.getElementById('reset-btn').style.display = 'inline-block';
-      } else {
-        resetSearch();
-      }
-    }
-
-    function filterBySubTopic(subTopic) {
-      if (subTopic) {
-        const filteredFAQs = allFAQs.filter(faq => faq.subTopic === subTopic);
-
-        // Display filtered FAQs by SubTopic
-        const faqList = document.getElementById('faq-list');
-        faqList.className = 'faq-list-single-column'; // Keep a single-column layout for filtered results
-        faqList.innerHTML = `
-          <div class="faq-group">
-            <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
-            ${filteredFAQs.map(createCard).join('')}
-          </div>
-        `;
-
-        document.getElementById('featured-faqs').style.display = 'none';
-        document.getElementById('view-all-btn').style.display = 'none';
-        document.getElementById('reset-btn').style.display = 'inline-block';
-      } else {
-        resetSearch();
-      }
-    }
-
-    function filterByTopicAndSubTopic(topic, subTopic) {
-      if (topic && subTopic) {
-        const filteredFAQs = allFAQs.filter(faq => faq.topic === topic && faq.subTopic === subTopic);
-
-        // Display filtered FAQs under Topic > SubTopic
-        const faqList = document.getElementById('faq-list');
-        faqList.className = 'faq-list-single-column'; // Use single-column class for filtered results
-        faqList.innerHTML = `
-          <div class="faq-group">
-            <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
-            ${filteredFAQs.map(createCard).join('')}
-          </div>
-        `;
-
-        document.getElementById('featured-faqs').style.display = 'none';
-        document.getElementById('view-all-btn').style.display = 'none';
-        document.getElementById('reset-btn').style.display = 'inline-block';
-      } else {
-        resetSearch();
-      }
-    }
-
-    function createCard(faq) {
-      // Ensure problem and solution fields exist before processing
-      if (!faq.problem || !faq.solutionHtml) {
-        return '';  // Skip rendering this card if either field is missing
+      function loadGoogleSheetsAPI() {
+        var script = document.createElement('script');
+        script.src = 'https://www.gstatic.com/charts/loader.js';
+        script.onload = initGoogleSheets;
+        document.head.appendChild(script);
       }
 
-      return `
-        <div class="faq-card" onclick="toggleSolution(this)">
-          <div class="faq-problem-tags">
-            <div class="faq-header">
-              <div class="faq-problem">${faq.problem}</div>
-              <button class="collapse-btn" onclick="collapseSolution(event, this)" style="display: none;">Collapse Solution</button>
-            </div>
-            <div class="faq-tags">
-              <span class="faq-tag" onclick="event.stopPropagation(); filterByTopic('${faq.topic}')">${faq.topic}</span>
-              ${faq.subTopic ? `<span class="faq-tag" onclick="event.stopPropagation(); filterByTopicAndSubTopic('${faq.topic}', '${faq.subTopic}')">${faq.subTopic}</span>` : ''}
-            </div>
-          </div>
-          <div class="faq-solution">${faq.solutionHtml}</div>
-        </div>
-      `;
-    }
-
-    function toggleSolution(card) {
-      const solutionDiv = card.querySelector('.faq-solution');
-      const collapseBtn = card.querySelector('.collapse-btn'); // Ensure this button is added in your HTML.
-
-      // If the solution is hidden, expand it
-      if (solutionDiv.style.display === 'none' || solutionDiv.style.display === '') {
-        solutionDiv.style.display = 'block'; // Show the solution
-        if (collapseBtn) collapseBtn.style.display = 'inline-block'; // Show the Collapse button
-      }
-    }
-
-    function collapseSolution(event, button) {
-      event.stopPropagation(); // Prevent the card click event
-      const card = button.closest('.faq-card');
-      const solutionDiv = card.querySelector('.faq-solution');
-      const collapseBtn = card.querySelector('.collapse-btn');
-
-      // Collapse the solution
-      solutionDiv.style.display = 'none';
-      collapseBtn.style.display = 'none'; // Hide the Collapse button
-    }
-
-    function displayFAQs(faqs) {
-      // Group FAQs by topic
-      const groupedFAQs = faqs.reduce((group, faq) => {
-        if (!group[faq.topic]) group[faq.topic] = [];
-        group[faq.topic].push(faq);
-        return group;
-      }, {});
-
-      // Display grouped FAQs
-      const faqList = document.getElementById('faq-list');
-      faqList.className = 'faq-list-single-column'; // Use single-column class for search results if desired
-      faqList.innerHTML = Object.entries(groupedFAQs).map(([topic, faqs]) => {
-        return `
-          <div class="faq-group">
-            <h2>${topic}</h2>
-            ${faqs.map(createCard).join('')}
-          </div>
-        `;
-      }).join('');
-
-      document.getElementById('feedback-section').style.display = 'block';
-      document.getElementById('reset-btn').style.display = 'inline-block';
-    }
-
-    function displayFeaturedFAQs() {
-      const featuredFAQs = allFAQs.filter(faq => faq.featured);
-      const featuredList = document.getElementById('featured-list');
-      if (featuredFAQs.length > 0) {
-        featuredList.innerHTML = featuredFAQs.map(createCard).join('');
-      } else {
-        document.getElementById('featured-faqs').style.display = 'none';
-      }
-    }
-
-    function setupFuse() {
-      const fuseOptions = {
-        keys: ['problem', 'topic', 'subtopic', 'tags'],
-        threshold: 0.5,
-        includeScore: true
-      };
-
-      fuse = new Fuse(allFAQs, fuseOptions);
-        
-      //setup debounce to reduce search frequency
-      function debounce(func, wait) {
-        let timeout;
-        return function(...args) {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => func.apply(this, args), wait);
-        };
+      function initGoogleSheets() {
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(fetchFAQData);
       }
 
-      // Set up the search functionality
-      document.getElementById('search-box').addEventListener('input', debounce((e) => {
-        const query = e.target.value.toLowerCase();
-        lastSearchQuery = query; // Update last search query
+      function fetchFAQData() {
+        const spreadsheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJiScHEwX_pwIaFkd-2-zhWMDiPCDMC5mpzEYimmGmUCPUp8vozJrgsOOX6VghkmxUr25ujSAkDJdo/pub?gid=568968512&single=true&output=csv';
 
-        // Show feedback section when typing starts
-        if (query) {
-          const results = fuse.search(query).map(result => result.item);
-          displayFAQs(results);
-          document.getElementById('featured-faqs').style.display = 'none'; // Hide featured FAQs when searching
+        // Fetch the CSV and parse it with PapaParse
+        fetch(spreadsheetURL)
+          .then(response => response.text())
+          .then(csvText => {
+            Papa.parse(csvText, {
+              header: true,  // Use the first row as the header
+              skipEmptyLines: true,  // Skip empty lines
+              complete: function(results) {
+                // Store the parsed data in the allFAQs array
+                allFAQs = results.data.filter(row => row.Approved === 'TRUE').map(row => ({
+                  category: row.Category || '',
+                  topic: row.Topic || '',
+                  subTopic: row.SubTopic || 'General',  // Store the Sub_Topic value
+                  tags: row.Tags || '',
+                  problem: row.Problem_Question || '',
+                  solutionHtml: row.solutionHtml || '',  // Use the solution HTML column directly
+                  featured: row.Featured === 'TRUE'  // Check if the FAQ is featured
+                }));
+
+                populateTopicFilter(); // Populate the topic dropdown
+                displayFeaturedFAQs();
+
+                // Setup Fuse.js for searching
+                setupFuse();  // Initialize Fuse.js with the FAQ data
+              },
+              error: function(error) {
+                console.error('Error parsing CSV:', error);
+              }
+            });
+          })
+          .catch(error => console.error('Error fetching the sheet:', error));
+      }
+
+      function populateTopicFilter() {
+        const topicFilter = document.getElementById('topic-filter');
+        const uniqueTopics = [...new Set(allFAQs.map(faq => faq.topic).filter(topic => topic))];
+        uniqueTopics.forEach(topic => {
+          const option = document.createElement('option');
+          option.value = topic;
+          option.textContent = topic;
+          topicFilter.appendChild(option);
+        });
+
+        topicFilter.addEventListener('change', function() {
+          filterByTopic(this.value);
+        });
+      }
+
+      function filterByTopic(topic) {
+        if (topic) {
+          const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
+
+          // Group by SubTopic
+          const groupedBySubTopic = filteredFAQs.reduce((group, faq) => {
+            const subTopic = faq.subTopic || 'General';  // Assign "General" if no sub-topic is provided
+            if (!group[subTopic]) group[subTopic] = [];
+            group[subTopic].push(faq);
+            return group;
+          }, {});
+
+          // Display FAQs grouped by SubTopic
+          const faqList = document.getElementById('faq-list');
+          faqList.className = Object.keys(groupedBySubTopic).length > 1 ? 'faq-list-container' : 'faq-list-single-column';  // Apply two-column or single-column class
+          faqList.innerHTML = Object.entries(groupedBySubTopic).map(([subTopic, faqs]) => {
+            return `
+              <div class="faq-group">
+              <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
+              ${filteredFAQs.map(createCard).join('')}
+              </div>
+            `;
+          }).join('');
+
+          document.getElementById('featured-faqs').style.display = 'none';
           document.getElementById('view-all-btn').style.display = 'none';
           document.getElementById('reset-btn').style.display = 'inline-block';
         } else {
           resetSearch();
         }
-      }, 300));
-    }
+      }
 
-    function viewAllFAQs() {
-      const groupedFAQs = allFAQs.reduce((group, faq) => {
-        if (!group[faq.topic]) group[faq.topic] = [];
-        group[faq.topic].push(faq);
-        return group;
-      }, {});
+      function filterBySubTopic(subTopic) {
+        if (subTopic) {
+          const filteredFAQs = allFAQs.filter(faq => faq.subTopic === subTopic);
 
-      // Sort topics alphabetically
-      const sortedTopics = Object.keys(groupedFAQs).sort();
+          // Display filtered FAQs by SubTopic
+          const faqList = document.getElementById('faq-list');
+          faqList.className = 'faq-list-single-column'; // Keep a single-column layout for filtered results
+          faqList.innerHTML = `
+            <div class="faq-group">
+              <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
+              ${filteredFAQs.map(createCard).join('')}
+            </div>
+          `;
 
-      const faqList = document.getElementById('faq-list');
-      faqList.className = 'faq-list-container';  // Apply two-column class
-      faqList.innerHTML = sortedTopics.map(topic => {
-      const faqs = groupedFAQs[topic];
+          document.getElementById('featured-faqs').style.display = 'none';
+          document.getElementById('view-all-btn').style.display = 'none';
+          document.getElementById('reset-btn').style.display = 'inline-block';
+        } else {
+          resetSearch();
+        }
+      }
+
+      function filterByTopicAndSubTopic(topic, subTopic) {
+        if (topic && subTopic) {
+          const filteredFAQs = allFAQs.filter(faq => faq.topic === topic && faq.subTopic === subTopic);
+
+          // Display filtered FAQs under Topic > SubTopic
+          const faqList = document.getElementById('faq-list');
+          faqList.className = 'faq-list-single-column'; // Use single-column class for filtered results
+          faqList.innerHTML = `
+            <div class="faq-group">
+              <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
+              ${filteredFAQs.map(createCard).join('')}
+            </div>
+          `;
+
+          document.getElementById('featured-faqs').style.display = 'none';
+          document.getElementById('view-all-btn').style.display = 'none';
+          document.getElementById('reset-btn').style.display = 'inline-block';
+        } else {
+          resetSearch();
+        }
+      }
+
+      function createCard(faq) {
+        if (!faq.problem || !faq.solutionHtml) return ''; 
+
         return `
-          <div class="faq-group">
-            <h2>${topic}</h2>
-            ${faqs.slice(0, 5).map(createCard).join('')}
-            <button class="view-all-by-topic" onclick="viewAllByTopic('${topic}')" style="${faqs.length > 5 ? 'display: inline-block;' : 'display: none;'}">View All for ${topic}</button>
+          <div class="faq-card" onclick="toggleSolution(this)">
+            <div class="faq-problem-tags">
+              <div class="faq-header">
+                <div class="faq-problem">${faq.problem}</div>
+              </div>
+              <div class="faq-tags">
+                <span class="faq-tag" onclick="event.stopPropagation(); filterByTopic('${faq.topic}')">${faq.topic}</span>
+                ${faq.subTopic ? `<span class="faq-tag" onclick="event.stopPropagation(); filterByTopicAndSubTopic('${faq.topic}', '${faq.subTopic}')">${faq.subTopic}</span>` : ''}
+              </div>
+            </div>
+            <div class="faq-solution">
+              ${faq.solutionHtml}
+              <div style="margin-top: 10px;">
+                <button class="copy-btn" onclick="copySolutionToClipboard(event, this)">Copy Solution</button>
+                <button class="collapse-btn" onclick="collapseSolution(event, this)">Collapse Solution</button>
+              </div>
+            </div>
           </div>
         `;
-      }).join('');
-      
-      document.getElementById('view-all-btn').style.display = 'none';
-      document.getElementById('featured-faqs').style.display = 'none';
-      document.getElementById('reset-btn').style.display = 'inline-block';
-      document.getElementById('feedback-section').style.display = 'block';
-    }
+      }
 
-    function viewAllByTopic(topic) {
-      const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
-      const topicContainer = [...document.querySelectorAll('.faq-group')].find(group => group.querySelector('h2').innerText === topic);
-      topicContainer.innerHTML = `
-        <h2>${topic}</h2>
-        ${filteredFAQs.map(createCard).join('')}
-      `;
-    }
+      function toggleSolution(card) {
+        const solutionDiv = card.querySelector('.faq-solution');
+        const collapseBtn = card.querySelector('.collapse-btn'); // Ensure this button is added in your HTML.
 
-    function resetSearch() {
-      document.getElementById('faq-list').innerHTML = '';
-      document.getElementById('feedback-section').style.display = 'none';
-      document.getElementById('featured-faqs').style.display = 'block';
-      document.getElementById('view-all-btn').style.display = 'inline-block';
-      document.getElementById('reset-btn').style.display = 'none';
-      document.getElementById('topic-filter').value = '';
-      document.getElementById('search-box').value = '';
-    }
+        // If the solution is hidden, expand it
+        if (solutionDiv.style.display === 'none' || solutionDiv.style.display === '') {
+          solutionDiv.style.display = 'block'; // Show the solution
+          if (collapseBtn) collapseBtn.style.display = 'inline-block'; // Show the Collapse button
+        }
+      }
 
-    loadGoogleSheetsAPI();
-  </script>
-</body>
-</html>
+      function collapseSolution(event, button) {
+        event.stopPropagation(); // Prevent the card click event
+        const card = button.closest('.faq-card');
+        const solutionDiv = card.querySelector('.faq-solution');
+        const collapseBtn = card.querySelector('.collapse-btn');
+
+        // Collapse the solution
+        solutionDiv.style.display = 'none';
+        collapseBtn.style.display = 'none'; // Hide the Collapse button
+      }
+
+      function copySolutionToClipboard(event, button) {
+        event.stopPropagation(); // Prevent the card's onclick from firing
+
+        // Find the solution content
+        const solutionDiv = button.closest('.faq-solution');
+
+        // Clone the solutionDiv to exclude buttons
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = solutionDiv.innerHTML;
+
+        // Remove all buttons from the cloned content
+        tempDiv.querySelectorAll('button').forEach(btn => btn.remove());
+
+        // Copy only the remaining rich text content
+        navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([tempDiv.innerHTML], { type: "text/html" }),
+            "text/plain": new Blob([tempDiv.innerText], { type: "text/plain" })
+          })
+        ]).then(() => {
+          showNotification('Solution copied to clipboard!', '#4caf50'); // Green notification
+        }).catch(err => {
+          console.error('Failed to copy solution:', err);
+          showNotification('Failed to copy solution. Please try again.', '#ff5f6d'); // Red notification
+        });
+      }
+
+      function showNotification(message, backgroundColor) {
+        const notificationContainer = document.getElementById('notification-container');
+        notificationContainer.textContent = message;
+        notificationContainer.style.backgroundColor = backgroundColor || '#4caf50'; // Default to green
+        notificationContainer.style.display = 'block';
+
+        // Hide the notification after 2 seconds
+        setTimeout(() => {
+          notificationContainer.style.display = 'none';
+        }, 2000);
+      }
+
+      function displayFAQs(faqs) {
+        // Group FAQs by topic
+        const groupedFAQs = faqs.reduce((group, faq) => {
+          if (!group[faq.topic]) group[faq.topic] = [];
+          group[faq.topic].push(faq);
+          return group;
+        }, {});
+
+        // Display grouped FAQs
+        const faqList = document.getElementById('faq-list');
+        faqList.className = 'faq-list-single-column'; // Use single-column class for search results if desired
+        faqList.innerHTML = Object.entries(groupedFAQs).map(([topic, faqs]) => {
+          return `
+            <div class="faq-group">
+              <h2>${topic}</h2>
+              ${faqs.map(createCard).join('')}
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('feedback-section').style.display = 'block';
+        document.getElementById('reset-btn').style.display = 'inline-block';
+      }
+
+      function displayFeaturedFAQs() {
+        const featuredFAQs = allFAQs.filter(faq => faq.featured);
+        const featuredList = document.getElementById('featured-list');
+        if (featuredFAQs.length > 0) {
+          featuredList.innerHTML = featuredFAQs.map(createCard).join('');
+        } else {
+          document.getElementById('featured-faqs').style.display = 'none';
+        }
+      }
+
+      function setupFuse() {
+        const fuseOptions = {
+          keys: ['problem', 'topic', 'subtopic', 'tags'],
+          threshold: 0.5,
+          includeScore: true
+        };
+
+        fuse = new Fuse(allFAQs, fuseOptions);
+          
+        //setup debounce to reduce search frequency
+        function debounce(func, wait) {
+          let timeout;
+          return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+          };
+        }
+
+        // Set up the search functionality
+        document.getElementById('search-box').addEventListener('input', debounce((e) => {
+          const query = e.target.value.toLowerCase();
+          lastSearchQuery = query; // Update last search query
+
+          // Show feedback section when typing starts
+          if (query) {
+            const results = fuse.search(query).map(result => result.item);
+            displayFAQs(results);
+            document.getElementById('featured-faqs').style.display = 'none'; // Hide featured FAQs when searching
+            document.getElementById('view-all-btn').style.display = 'none';
+            document.getElementById('reset-btn').style.display = 'inline-block';
+          } else {
+            resetSearch();
+          }
+        }, 300));
+      }
+
+      function viewAllFAQs() {
+        const groupedFAQs = allFAQs.reduce((group, faq) => {
+          if (!group[faq.topic]) group[faq.topic] = [];
+          group[faq.topic].push(faq);
+          return group;
+        }, {});
+
+        // Sort topics alphabetically
+        const sortedTopics = Object.keys(groupedFAQs).sort();
+
+        const faqList = document.getElementById('faq-list');
+        faqList.className = 'faq-list-container';  // Apply two-column class
+        faqList.innerHTML = sortedTopics.map(topic => {
+        const faqs = groupedFAQs[topic];
+          return `
+            <div class="faq-group">
+              <h2>${topic}</h2>
+              ${faqs.slice(0, 5).map(createCard).join('')}
+              <button class="view-all-by-topic" onclick="viewAllByTopic('${topic}')" style="${faqs.length > 5 ? 'display: inline-block;' : 'display: none;'}">View All for ${topic}</button>
+            </div>
+          `;
+        }).join('');
+        
+        document.getElementById('view-all-btn').style.display = 'none';
+        document.getElementById('featured-faqs').style.display = 'none';
+        document.getElementById('reset-btn').style.display = 'inline-block';
+        document.getElementById('feedback-section').style.display = 'block';
+      }
+
+      function viewAllByTopic(topic) {
+        const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
+        const topicContainer = [...document.querySelectorAll('.faq-group')].find(group => group.querySelector('h2').innerText === topic);
+        topicContainer.innerHTML = `
+          <h2>${topic}</h2>
+          ${filteredFAQs.map(createCard).join('')}
+        `;
+      }
+
+      function resetSearch() {
+        document.getElementById('faq-list').innerHTML = '';
+        document.getElementById('feedback-section').style.display = 'none';
+        document.getElementById('featured-faqs').style.display = 'block';
+        document.getElementById('view-all-btn').style.display = 'inline-block';
+        document.getElementById('reset-btn').style.display = 'none';
+        document.getElementById('topic-filter').value = '';
+        document.getElementById('search-box').value = '';
+      }
+
+      loadGoogleSheetsAPI();
+    </script>
+  </body>
+  </html>
