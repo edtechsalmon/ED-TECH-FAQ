@@ -493,7 +493,7 @@
 
       function populateTopicFilter() {
         const topicFilter = document.getElementById('topic-filter');
-        const uniqueTopics = [...new Set(allFAQs.map(faq => faq.topic).filter(topic => topic))];
+        const uniqueTopics = [...new Set(allFAQs.map(faq => faq.topic).filter(topic => topic))].sort();
 
         uniqueTopics.forEach(topic => {
           const option = document.createElement('option');
@@ -550,7 +550,7 @@
           const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
 
           // Update SubTopic options based on the filtered results
-          const uniqueSubTopics = [...new Set(filteredFAQs.map(faq => faq.subTopic).filter(subTopic => subTopic))];
+          const uniqueSubTopics = [...new Set(filteredFAQs.map(faq => faq.subTopic).filter(subTopic => subTopic))].sort();
           uniqueSubTopics.forEach(subTopic => {
             const option = document.createElement('option');
             option.value = subTopic;
