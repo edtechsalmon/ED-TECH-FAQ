@@ -63,7 +63,7 @@
       }
 
       /* Topic Filter Dropdown Styling */
-      #topic-filter {
+      #topic-filter, #subtopic-filter {
         width: 25%;
         max-width: 250px;
         padding: 10px;
@@ -78,11 +78,11 @@
         transition: box-shadow 0.2s;
       }
 
-      #topic-filter:hover {
+      #topic-filter:hover, #subtopic:hover {
         background-color: #e6f0ff;
       }
 
-      #topic-filter:focus {
+      #topic-filter:focus, #subtopic: focus {
         box-shadow: 0 8px 16px rgba(0, 85, 179, 0.4);
         outline: none;
       }
@@ -320,7 +320,6 @@
         font-weight: 700; /* Bold for visibility */
       }
 
-
       /* Expand Column Layout for FAQ Groups */
       .faq-list-container {
         display: grid;
@@ -356,42 +355,47 @@
         box-shadow: 0 2px 6px rgba(0, 85, 179, 0.2);
       }
 
-    .clickable-header {
-      color: #0056b3; /* Match the FAQ theme color */
-      text-decoration: underline;
-      cursor: pointer;
-      transition: color 0.2s ease;
-    }
+      .clickable-header {
+        color: #0056b3; /* Match the FAQ theme color */
+        text-decoration: underline;
+        cursor: pointer;
+        transition: color 0.2s ease;
+      }
 
-    .clickable-header:hover {
-      color: #003d80; /* Darker shade on hover */
-    }
+      .clickable-header:hover {
+        color: #003d80; /* Darker shade on hover */
+      }
 
-    .subtopic-header {
-      font-size: 20px; /* Slightly smaller than the main topic headers */
-      font-weight: bold;
-      color: #0056b3;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      background-color: #e6f7ff; /* Slightly distinct background */
-    }
+      .subtopic-header {
+        font-size: 20px; /* Slightly smaller than the main topic headers */
+        font-weight: bold;
+        color: #0056b3;
+        padding: 8px 12px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        background-color: #e6f7ff; /* Slightly distinct background */
+      }
 
-    @media (max-width:800px) {
-      .faq-list-container {
-        grid-template-columns: 1fr; /* Switch to a single-column layout */
-        gap: 20px; /* Keep the spacing between items */
+      .hidden {
+        display: none !important;
+      }
+
+
+      @media (max-width:800px) {
+        .faq-list-container {
+          grid-template-columns: 1fr; /* Switch to a single-column layout */
+          gap: 20px; /* Keep the spacing between items */
+          }
+        .faq-problem-tags {
+          flex-direction: column; /* Stack the elements vertically */
+          align-items: flex-start; /* Align items to the left */
         }
-      .faq-problem-tags {
-        flex-direction: column; /* Stack the elements vertically */
-        align-items: flex-start; /* Align items to the left */
-      }
 
-      .faq-tags {
-        margin-top: 0px; /* Add some spacing when they move below */
+        .faq-tags {
+          margin-top: 0px; /* Add some spacing when they move below */
+        }
       }
-    }
-    
+  
     </style>
     <!-- Include Google Fonts and Fuse.js for fuzzy searching -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -407,6 +411,9 @@
     <div class="button-group">
       <select id="topic-filter">
         <option value="">Filter by Topic</option>
+      </select>
+      <select id="subtopic-filter" class="hidden">
+        <option value="">Filter by SubTopic</option>
       </select>
       <a href="javascript:void(0)" id="view-all-btn" class="view-all-btn" onclick="viewAllFAQs()">
         <i class="fas fa-list"></i> View All FAQs
@@ -470,6 +477,7 @@
                 }));
 
                 populateTopicFilter(); // Populate the topic dropdown
+                populateSubTopicFilter(); // Populate the subtopic dropdown
                 displayFeaturedFAQs();
 
                 // Setup Fuse.js for searching
@@ -486,6 +494,7 @@
       function populateTopicFilter() {
         const topicFilter = document.getElementById('topic-filter');
         const uniqueTopics = [...new Set(allFAQs.map(faq => faq.topic).filter(topic => topic))];
+
         uniqueTopics.forEach(topic => {
           const option = document.createElement('option');
           option.value = topic;
@@ -493,16 +502,63 @@
           topicFilter.appendChild(option);
         });
 
-        topicFilter.addEventListener('change', function() {
-          filterByTopic(this.value);
+        topicFilter.addEventListener('change', function () {
+          const selectedTopic = this.value;
+
+          // Populate SubTopic dropdown based on the selected Topic
+          populateSubTopicFilter(selectedTopic);
+
+          // Filter FAQs by the selected Topic
+          filterByTopic(selectedTopic);
+        });
+      }
+
+      function populateSubTopicFilter(selectedTopic) {
+        const subtopicFilter = document.getElementById('subtopic-filter');
+        subtopicFilter.innerHTML = '<option value="">Filter by SubTopic</option>'; // Clear existing options
+
+        // Filter FAQs by selected Topic
+        const filteredFAQs = allFAQs.filter(faq => faq.topic === selectedTopic);
+
+        // Get unique SubTopics for the filtered FAQs
+        const uniqueSubTopics = [...new Set(filteredFAQs.map(faq => faq.subTopic).filter(subTopic => subTopic))];
+
+        // Populate the SubTopic dropdown with options
+        uniqueSubTopics.forEach(subTopic => {
+          const option = document.createElement('option');
+          option.value = subTopic;
+          option.textContent = subTopic;
+          subtopicFilter.appendChild(option);
+        });
+
+        // Enable or disable the SubTopic dropdown based on available options
+        subtopicFilter.disabled = uniqueSubTopics.length === 0;
+
+        // Attach event listener to SubTopic filter
+        subtopicFilter.addEventListener('change', function () {
+          filterByTopicAndSubTopic(selectedTopic, this.value);
         });
       }
 
       function filterByTopic(topic) {
+        const subTopicFilter = document.getElementById('subtopic-filter');
+        subTopicFilter.innerHTML = '<option value="">Filter by SubTopic</option>'; // Reset SubTopic dropdown
+
         if (topic) {
+          subTopicFilter.classList.remove('hidden'); // Show SubTopic filter when a topic is selected
+
           const filteredFAQs = allFAQs.filter(faq => faq.topic === topic);
 
-          // Group by SubTopic
+          // Update SubTopic options based on the filtered results
+          const uniqueSubTopics = [...new Set(filteredFAQs.map(faq => faq.subTopic).filter(subTopic => subTopic))];
+          uniqueSubTopics.forEach(subTopic => {
+            const option = document.createElement('option');
+            option.value = subTopic;
+            option.textContent = subTopic;
+            subTopicFilter.appendChild(option);
+          });
+
+          // Group by SubTopic and display FAQs
           const groupedBySubTopic = filteredFAQs.reduce((group, faq) => {
             const subTopic = faq.subTopic || 'General'; // Assign "General" if no sub-topic is provided
             if (!group[subTopic]) group[subTopic] = [];
@@ -510,14 +566,12 @@
             return group;
           }, {});
 
-          // Sort SubTopics, ensuring "General" is always first
           const sortedSubTopics = Object.keys(groupedBySubTopic).sort((a, b) => {
             if (a === 'General') return -1; // Place "General" first
             if (b === 'General') return 1;
             return a.localeCompare(b); // Sort alphabetically for the rest
           });
 
-          // Display FAQs grouped by SubTopic
           const faqList = document.getElementById('faq-list');
           faqList.className = sortedSubTopics.length > 1 ? 'faq-list-container' : 'faq-list-single-column'; // Apply two-column or single-column class
           faqList.innerHTML = sortedSubTopics.map(subTopic => {
@@ -534,17 +588,19 @@
           document.getElementById('view-all-btn').style.display = 'none';
           document.getElementById('reset-btn').style.display = 'inline-block';
         } else {
+          subTopicFilter.classList.add('hidden'); // Hide SubTopic filter when no topic is selected
           resetSearch();
         }
       }
 
       function filterBySubTopic(subTopic) {
-        if (subTopic) {
-          const filteredFAQs = allFAQs.filter(faq => faq.subTopic === subTopic);
+        const topic = document.getElementById('topic-filter').value;
 
-          // Display filtered FAQs by SubTopic
+        if (subTopic) {
+          const filteredFAQs = allFAQs.filter(faq => faq.topic === topic && faq.subTopic === subTopic);
+
           const faqList = document.getElementById('faq-list');
-          faqList.className = 'faq-list-single-column'; // Keep a single-column layout for filtered results
+          faqList.className = 'faq-list-single-column'; // Use single-column layout for filtered results
           faqList.innerHTML = `
             <div class="faq-group">
               <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
@@ -556,30 +612,30 @@
           document.getElementById('view-all-btn').style.display = 'none';
           document.getElementById('reset-btn').style.display = 'inline-block';
         } else {
-          resetSearch();
+          filterByTopic(topic); // Reset to only filter by Topic if SubTopic is cleared
         }
       }
 
       function filterByTopicAndSubTopic(topic, subTopic) {
-        if (topic && subTopic) {
-          const filteredFAQs = allFAQs.filter(faq => faq.topic === topic && faq.subTopic === subTopic);
+        let filteredFAQs = allFAQs;
 
-          // Display filtered FAQs under Topic > SubTopic
-          const faqList = document.getElementById('faq-list');
-          faqList.className = 'faq-list-single-column'; // Use single-column class for filtered results
-          faqList.innerHTML = `
-            <div class="faq-group">
-              <h3 class="subtopic-header"> ${topic} > ${subTopic}</h3>
-              ${filteredFAQs.map(createCard).join('')}
-            </div>
-          `;
-
-          document.getElementById('featured-faqs').style.display = 'none';
-          document.getElementById('view-all-btn').style.display = 'none';
-          document.getElementById('reset-btn').style.display = 'inline-block';
-        } else {
-          resetSearch();
+        // Filter by Topic if provided
+        if (topic) {
+          filteredFAQs = filteredFAQs.filter(faq => faq.topic === topic);
         }
+
+        // Further filter by SubTopic if provided
+        if (subTopic) {
+          filteredFAQs = filteredFAQs.filter(faq => faq.subTopic === subTopic);
+        }
+
+        // Display the filtered FAQs
+        displayFAQs(filteredFAQs);
+
+        // Update UI visibility
+        document.getElementById('featured-faqs').style.display = 'none';
+        document.getElementById('view-all-btn').style.display = 'none';
+        document.getElementById('reset-btn').style.display = 'inline-block';
       }
 
       function createCard(faq) {
@@ -704,38 +760,64 @@
 
       function setupFuse() {
         const fuseOptions = {
-          keys: ['problem', 'topic', 'subtopic', 'tags'],
+          keys: ['problem', 'topic', 'subTopic', 'tags'],
           threshold: 0.5,
           includeScore: true
         };
 
         fuse = new Fuse(allFAQs, fuseOptions);
-          
-        //setup debounce to reduce search frequency
+
+        const topicFilter = document.getElementById('topic-filter');
+        const subTopicFilter = document.getElementById('subtopic-filter');
+
+        // Setup debounce to reduce search frequency
         function debounce(func, wait) {
           let timeout;
-          return function(...args) {
+          return function (...args) {
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(this, args), wait);
           };
         }
 
-        // Set up the search functionality
-        document.getElementById('search-box').addEventListener('input', debounce((e) => {
-          const query = e.target.value.toLowerCase();
-          lastSearchQuery = query; // Update last search query
+        document.getElementById('search-box').addEventListener(
+          'input',
+          debounce((e) => {
+            const query = e.target.value.toLowerCase();
 
-          // Show feedback section when typing starts
-          if (query) {
-            const results = fuse.search(query).map(result => result.item);
-            displayFAQs(results);
-            document.getElementById('featured-faqs').style.display = 'none'; // Hide featured FAQs when searching
-            document.getElementById('view-all-btn').style.display = 'none';
-            document.getElementById('reset-btn').style.display = 'inline-block';
-          } else {
-            resetSearch();
-          }
-        }, 300));
+            if (query) {
+              const results = fuse.search(query).map(result => result.item);
+
+              // Dynamically populate Topic filter
+              const uniqueTopics = [...new Set(results.map(faq => faq.topic))];
+              topicFilter.innerHTML = '<option value="">Filter by Topic</option>';
+              uniqueTopics.forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic;
+                topicFilter.appendChild(option);
+              });
+
+              // Dynamically populate SubTopic filter
+              const uniqueSubTopics = [...new Set(results.map(faq => faq.subTopic))];
+              subTopicFilter.innerHTML = '<option value="">Filter by SubTopic</option>';
+              uniqueSubTopics.forEach(subTopic => {
+                const option = document.createElement('option');
+                option.value = subTopic;
+                option.textContent = subTopic;
+                subTopicFilter.appendChild(option);
+              });
+
+              subTopicFilter.classList.remove('hidden'); // Ensure SubTopic filter is visible
+              displayFAQs(results);
+
+              document.getElementById('featured-faqs').style.display = 'none';
+              document.getElementById('view-all-btn').style.display = 'none';
+              document.getElementById('reset-btn').style.display = 'inline-block';
+            } else {
+              resetSearch();
+            }
+          }, 300)
+        );
       }
 
       function viewAllFAQs() {
@@ -791,16 +873,33 @@
           }
         });
 
-        // Reset the UI components
+        // Reset the Topic and SubTopic dropdowns
+        const topicFilter = document.getElementById('topic-filter');
+        const subTopicFilter = document.getElementById('subtopic-filter');
+        subTopicFilter.classList.add('hidden'); // Hide SubTopic filter on reset
+        topicFilter.value = '';
+        subTopicFilter.value = '';
+        subTopicFilter.innerHTML = '<option value="">Filter by SubTopic</option>'; // Reset SubTopic options
+        subTopicFilter.disabled = true; // Disable SubTopic filter
+
+        // Repopulate Topic dropdown to show all unique topics
+        topicFilter.innerHTML = '<option value="">Filter by Topic</option>';
+        const uniqueTopics = [...new Set(allFAQs.map(faq => faq.topic).filter(topic => topic))];
+        uniqueTopics.forEach(topic => {
+          const option = document.createElement('option');
+          option.value = topic;
+          option.textContent = topic;
+          topicFilter.appendChild(option);
+        });
+
+        // Reset UI elements
         document.getElementById('faq-list').innerHTML = '';
         document.getElementById('feedback-section').style.display = 'none';
         document.getElementById('featured-faqs').style.display = 'block';
         document.getElementById('view-all-btn').style.display = 'inline-block';
         document.getElementById('reset-btn').style.display = 'none';
-        document.getElementById('topic-filter').value = '';
         document.getElementById('search-box').value = '';
       }
-
 
       loadGoogleSheetsAPI();
     </script>
