@@ -902,6 +902,33 @@
       }
 
       loadGoogleSheetsAPI();
+
+      // Get references to the elements
+    const topicfilter = document.getElementById('topic-filter');
+    const subtopicfilter = document.getElementById('subtopic-filter');
+    const searchbox = document.getElementById('search-box');
+
+    // Function to update URL
+    const updateURL = () => {
+      const topic = topicFilter.value;
+      const subtopic = subtopicFilter.value;
+      const query = searchBox.value;
+
+      // Construct URL parameters
+      const params = new URLSearchParams();
+      if (topic) params.set('topic', topic);
+      if (subtopic) params.set('subtopic', subtopic);
+      if (query) params.set('query', query);
+
+      // Update the URL dynamically without reloading the page
+      const newURL = `${window.location.pathname}?${params.toString()}`;
+      history.pushState(null, '', newURL);
+    };
+
+    // Add event listeners to update the URL dynamically
+    topic-filter.addEventListener('change', updateURL);
+    subtopic-filter.addEventListener('change', updateURL);
+    search-box.addEventListener('input', updateURL);
     </script>
   </body>
   </html>
