@@ -929,6 +929,31 @@
     topic-filter.addEventListener('change', updateURL);
     subtopic-filter.addEventListener('change', updateURL);
     search-box.addEventListener('input', updateURL);
+
+    // Function to update filters and query based on the URL
+    const updateFiltersFromURL = () => {
+      const params = new URLSearchParams(window.location.search);
+      const topic = params.get('topic') || '';
+      const subtopic = params.get('subtopic') || '';
+      const query = params.get('query') || '';
+
+      // Update the input fields
+      topicFilter.value = topic;
+      subtopicFilter.value = subtopic;
+      searchBox.value = query;
+    };
+
+    // Initialize filters on page load
+    updateFiltersFromURL();
+
+    // Listen for user input to update the URL dynamically
+    topicFilter.addEventListener('change', updateURL);
+    subtopicFilter.addEventListener('change', updateURL);
+    searchBox.addEventListener('input', updateURL);
+
+    // Listen for URL changes (e.g., browser navigation)
+    window.addEventListener('popstate', updateFiltersFromURL);
+
     </script>
   </body>
   </html>
